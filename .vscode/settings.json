@@ -1,0 +1,11 @@
+{
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "eslint.validate": [
+    "javascript"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": false
+}

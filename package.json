@@ -1,0 +1,44 @@
+{
+  "name": "nodejs-back-template",
+  "version": "1.0.0",
+  "description": "nodejs后台模板",
+  "main": "./src/main.js",
+  "scripts": {
+    "watch": "cross-env npx webpack --config webpack.config.js --watch --devtool source-map --mode development",
+    "serve": "node ./dist/main.js",
+    "build": "cross-env npx webpack --config webpack.config.js --mode production",
+    "lint": "eslint --fix --ext .js src"
+  },
+  "dependencies": {
+    "mysql": "^2.18.1",
+    "nodejs-websocket": "^1.7.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.21.2",
+    "@babel/plugin-transform-runtime": "^7.21.0",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/runtime": "^7.21.0",
+    "babel-loader": "^9.1.2",
+    "clean-webpack-plugin": "^4.0.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.35.0",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForeverWyq/nodejs-back-template"
+  },
+  "keywords": [
+    "nodejs",
+    "back",
+    "webpack",
+    "websocket",
+    "template",
+    "router"
+  ],
+  "author": "梓齐",
+  "license": "MIT"
+}
