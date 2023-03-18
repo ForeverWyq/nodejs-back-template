@@ -29,9 +29,10 @@ npm install
 1.  server封装
 2.  ws封装
 3.  单独的入口main.js
-4.  层层传递的socketList 接口调用时可主动向特定用户发送消息
+4.  层层传递的ws 接口调用时可操作ws对象,ws内socketList为所有已建立连接的用户的socket对象
 5.  统一的路由管理
 6.  统一的请求参数读取
+7. token拦截
 
 #### License
 
@@ -69,6 +70,7 @@ Copyright (c) 2023 梓齐
     |   |-- service
     |   |   |-- user.js
     |   |-- utils
+    |   |   |-- auth.js 权限操作
     |   |   |-- file.js 文件操作
     |   |   |-- lock.js 锁
     |   |   |-- router.js 路由类

@@ -26,9 +26,10 @@ npm install
 1. server encapsulation
 2. ws encapsulation
 3. Separate entry main.js
-4. The socketList interface can actively send messages to specific users when invoked
+4. The ws interface passed layer by layer can operate the ws object when invoked, and the socketList in ws is the socket object of all the users that have established connections
 5. Unified route management
 6. Uniform request parameter reading
+7. token blocking
 
 #### License
 
@@ -66,6 +67,7 @@ Software architecture description
     |   |-- service
     |   |   |-- user.js
     |   |-- utils
+    |   |   |-- auth.js // Permission operation
     |   |   |-- file.js // file operations
     |   |   |-- lock.js
     |   |   |-- router.js // routing class
