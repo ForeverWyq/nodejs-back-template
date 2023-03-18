@@ -1,3 +1,5 @@
+const tokenKey = 'access_token';
+
 module.exports = {
   // mysql配置
   mysql: {
@@ -14,7 +16,7 @@ module.exports = {
     'Authorization',
     'Accept',
     'X-Requested-With',
-    'access_token'
+    tokenKey
   ],
   // 允许的请求方法
   AllowMethods: [
@@ -25,5 +27,6 @@ module.exports = {
     'OPTIONS'
   ],
   // 允许的ip * 为允许所有
-  AllowOrigin: ['*']
+  AllowOrigin: ['*'],
+  tokenKey
 };

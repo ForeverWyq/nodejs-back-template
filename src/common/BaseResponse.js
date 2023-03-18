@@ -27,6 +27,14 @@ class BaseResponse {
     res.writeHead(500, this.head);
     res.end(JSON.stringify(params));
   }
+  permissionDenied(res) {
+    const params = {
+      code: RESPONSE.PERMISSION_DENIED,
+      message: '无权限访问'
+    };
+    res.writeHead(401, this.head);
+    res.end(JSON.stringify(params));
+  }
   notFound(res, path, method) {
     const params = {
       code: RESPONSE.NOT_FOUND,
