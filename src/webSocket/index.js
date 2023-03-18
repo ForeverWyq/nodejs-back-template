@@ -1,10 +1,12 @@
 const ws = require('nodejs-websocket');
 
 class WebSocket {
-  constructor(socketList, port) {
-    this.socketList = socketList;
+  constructor(port) {
+    this.socketList = [];
     this.ws = ws.createServer(this.wsServer);
-    this.ws.listen(port, this.listen);
+    this.ws.listen(port, function() {
+      console.log('webSocket启动成功, 端口:' + port);
+    });
   }
   wsServer(socket) {
     this.socket = socket;
@@ -13,11 +15,15 @@ class WebSocket {
       this.event(socket, type);
     });
   }
-  getSocket(key) {
-    this.socketList.findIndex(item => this.rule(key, item));
-  }
-  rule(key, item) {
-    return item.token === key.token;
+  /**
+   * 获取符合条件的userSocketItem组成的数组
+   * @param {Function(userSocketItem):boolean} rule 查找规则
+   * @returns {userSocketItem[]}
+   */
+  getSockets(rule) {
+    return this.socketList.filter(item => {
+      return rule(item);
+    });
   }
   event(socket, type) {
     socket.on(type, this[type]);
@@ -61,8 +67,19 @@ class WebSocket {
       console.log(data);
     });
   }
-  listen() {
-    console.log('webSocket启动成功');
+  /**
+   * 回复前端JSON数据
+   * @param {Array<T>} keys 发送人的主键数组
+   * @param {object} data 要返回的数据
+   */
+  sendJson(keys, data) {
+    const sendSocketList = this.getSockets((userSocketItem) => {
+      // 此处进行条件查询，返回true或false
+      return keys.findIndex(key => key === userSocketItem.key) !== -1;
+    });
+    sendSocketList.forEach(socket => {
+      socket.sendText(JSON.stringify(data));
+    });
   }
 }
 
