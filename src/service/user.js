@@ -1,7 +1,7 @@
 const user = require('../dao/modules/user');
 
-async function getUserInfo() {
-  const infoData = await user.selectUerInfo();
+async function getUserInfo(data) {
+  const infoData = await user.selectUerInfo(data);
   return infoData;
 }
 
