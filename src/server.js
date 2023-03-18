@@ -56,7 +56,7 @@ module.exports = function(ws, port) {
       const fn = router.use(req.method, path_);
       if (fn) {
         try {
-          fn({ res, paramsData: params, bodyData: data, socketList });
+          fn({ res, paramsData: params, bodyData: data, ws });
         } catch (error) {
           BaseResponse.error(res, error);
         }
@@ -67,6 +67,6 @@ module.exports = function(ws, port) {
   });
 
   server.listen(port, () => {
-    console.log('server启动成功');
+    console.log('server启动成功, 端口:' + port);
   });
 };
