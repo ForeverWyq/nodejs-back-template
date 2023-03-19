@@ -75,7 +75,12 @@ Copyright (c) 2023 梓齐
     |   |   |-- lock.js 锁
     |   |   |-- router.js 路由类
     |   |-- webSocket
-    |       |-- index.js
+    |   |   |-- index.js
+    |   |   |-- WsResponse.js ws返回值总入口封装
+    |   |-- |-- distribute 事件分发
+    |   |       |-- index.js 事件分发主入口，自动化导入modules下所有模块
+    |   |       |-- modules
+    |   |           |-- user.js
     |-- .eslintrc.js
     |-- webpack.config.js webpack配置
 

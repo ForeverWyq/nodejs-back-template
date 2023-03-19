@@ -72,7 +72,12 @@ Software architecture description
     |   |   |-- lock.js
     |   |   |-- router.js // routing class
     |   |-- webSocket
-    |       |-- index.js
+    |   |   |-- index.js
+    |   |   |-- WsResponse.js // ws return value total entry encapsulation
+    |   |-- |-- distribute // event distribution
+    |   |       |-- index.js // event distribution main entry, automatically import all modules under the modules
+    |   |       |-- modules
+    |   |           |-- user.js
     |-- .eslintrc.js
     |-- webpack.config.js // webpack configuration
 
