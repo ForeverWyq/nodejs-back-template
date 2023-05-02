@@ -12,7 +12,7 @@ function readDirSync(path, callback, type = 'f') {
     const realPath = path + '/' + name;
     const info = fs.statSync(realPath);
     if (info.isDirectory()) {
-      readDirSync(realPath);
+      readDirSync(realPath, callback, type);
       type === 'd' && callback && callback(name, path + '/');
     } else {
       type === 'f' && callback && callback(name, path + '/');
