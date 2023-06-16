@@ -1,6 +1,7 @@
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
+const handleTryCatch = require('./utils/handleTryCatch');
 
 const Router = require('./utils/router');
 const { importAll } = require('./utils/file');
@@ -54,14 +55,13 @@ module.exports = function(ws, port) {
         data = {};
       }
       const fn = router.use(req.method, path_);
-      if (fn) {
-        try {
-          fn({ res, paramsData: params, bodyData: data, ws });
-        } catch (error) {
-          BaseResponse.error(res, error);
-        }
-      } else {
+      if (!fn) {
         BaseResponse.notFound(res, path_, req.method);
+        return;
+      }
+      const [error] = handleTryCatch(fn, { res, paramsData: params, bodyData: data, ws });
+      if (error) {
+        BaseResponse.error(res, error);
       }
     });
   });
