@@ -59,10 +59,11 @@ module.exports = function(ws, port) {
         BaseResponse.notFound(res, path_, req.method);
         return;
       }
-      const [error] = handleTryCatch(fn, { res, paramsData: params, bodyData: data, ws });
-      if (error) {
-        BaseResponse.error(res, error);
-      }
+      handleTryCatch(fn, { res, paramsData: params, bodyData: data, ws }).then(([error]) => {
+        if (error) {
+          BaseResponse.error(res, error);
+        }
+      });
     });
   });
 
