@@ -14,7 +14,7 @@ const files = require.context('./controller/', true, /\.js$/);
 const fileMap = importAll(files);
 
 // 路由注册
-const router = new Router();
+const router = new Router('/serve');
 Object.keys(fileMap).forEach(name => {
   const register = fileMap[name];
   if (typeof register === 'function') {
