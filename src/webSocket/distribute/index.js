@@ -1,5 +1,5 @@
-const Router = require('../../utils/router');
-const { importAll } = require('../../utils/file');
+const Router = require('@/utils/router');
+const { importAll } = require('@/utils/file');
 const files = require.context('./modules/', true, /\.js$/);
 const fileMap = importAll(files);
 

@@ -1,4 +1,4 @@
-const user = require('../../../service/user');
+const user = require('@/service/user');
 
 const fileRoot = '/user';
 

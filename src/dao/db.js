@@ -1,5 +1,4 @@
 const mysql = require('mysql');
-const config = require('../config/index');
 const Lock = require('../utils/lock');
 
 class DB {
@@ -47,4 +46,4 @@ class DB {
   }
 }
 
-module.exports = new DB(config.mysql);
+module.exports = new DB(global.$config.mysql);

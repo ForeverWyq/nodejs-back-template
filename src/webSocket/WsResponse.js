@@ -1,4 +1,4 @@
-const { RESPONSE } = require('../common/CONSTANT');
+const { RESPONSE } = require('@/common/CONSTANT');
 class WsResponse {
   success(socket, type, data, message) {
     const params = {

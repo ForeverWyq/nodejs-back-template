@@ -1,3 +1,5 @@
+global.$config = require('@/config');
+global.$CONSTANT = require('@/common/CONSTANT');
 const server = require('./server');
 const WebSocket = require('./webSocket/index');
 

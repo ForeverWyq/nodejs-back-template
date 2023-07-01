@@ -1,4 +1,4 @@
-const { tokenKey } = require('./config/index');
+const { tokenKey } = global.$config;
 
 // 创建token
 function createToken(userInfo) {

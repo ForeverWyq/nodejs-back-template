@@ -28,6 +28,9 @@ module.exports = {
   performance: {
     hints: false
   },
+  optimization: {
+    minimize: false
+  },
   stats: (() => {
     return {
       warnings: false,

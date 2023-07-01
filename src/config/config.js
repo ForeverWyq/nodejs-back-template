@@ -1,6 +1,7 @@
 const tokenKey = 'access_token';
 
 module.exports = {
+  serverBaseUrl: '/serve',
   // mysql配置
   mysql: {
     host: 'localhost',

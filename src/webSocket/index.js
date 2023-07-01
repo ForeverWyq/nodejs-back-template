@@ -11,7 +11,6 @@ class WebSocket {
     });
   }
   wsServer(socket) {
-    this.socket = socket;
     const eventList = ['connect', 'text', 'error', 'close'];
     eventList.forEach(type => {
       this.event(socket, type);

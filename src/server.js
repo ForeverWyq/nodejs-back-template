@@ -1,20 +1,19 @@
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
-const handleTryCatch = require('./utils/handleTryCatch');
+const handleTryCatch = require('@/utils/handleTryCatch');
 
-const Router = require('./utils/router');
-const { importAll } = require('./utils/file');
+const Router = require('@/utils/router');
+const { importAll } = require('@/utils/file');
 const { getToken, checkoutToken } = require('./utils/auth');
 
-const BaseResponse = require('./common/BaseResponse');
-const { WHITEURL } = require('../common/CONSTANT/index');
-
+const BaseResponse = require('@/common/BaseResponse');
+const { WHITE_URL } = global.$CONSTANT;
 const files = require.context('./controller/', true, /\.js$/);
 const fileMap = importAll(files);
 
 // 路由注册
-const router = new Router('/serve');
+const router = new Router(global.$config.serverBaseUrl);
 Object.keys(fileMap).forEach(name => {
   const register = fileMap[name];
   if (typeof register === 'function') {
@@ -23,8 +22,8 @@ Object.keys(fileMap).forEach(name => {
 });
 
 // 接口白名单，无需token的接口列表
-const whiteList = WHITEURL;
-module.exports = function(ws, port) {
+const whiteList = WHITE_URL;
+module.exports = (ws, port) => {
   const server = http.createServer((req, res) => {
     const { method } = req;
     if (method === 'OPTIONS') {

@@ -1,5 +1,5 @@
-const { RESPONSE } = require('./CONSTANT');
-const { AllowOrigin, AllowHeaders, AllowMethods } = require('../config');
+const { RESPONSE } = global.$CONSTANT;
+const { AllowOrigin, AllowHeaders, AllowMethods } = global.$config;
 class BaseResponse {
   constructor() {
     this.head = {
