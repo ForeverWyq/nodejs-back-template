@@ -1,9 +1,12 @@
 const db = require('../db');
+const DBPlus = require('../DBPlus');
+const table = require('../table/user');
+
+const userTable = new DBPlus(db, table);
 
 async function selectUerInfo({ id }) {
-  const sql = 'select * from user where id=?';
-  const res = await db.executeSql(sql, [id]);
-  return res;
+  const [userInfo] = await userTable.select({ id });
+  return userInfo;
 }
 
 module.exports = {

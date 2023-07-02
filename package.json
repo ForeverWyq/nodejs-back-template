@@ -2,7 +2,7 @@
   "name": "nodejs-back-template",
   "version": "1.0.0",
   "description": "nodejs后台模板",
-  "main": "./src/main.js",
+  "main": "./dist/main.js",
   "scripts": {
     "watch": "cross-env npx webpack --config webpack.config.js --watch --devtool source-map --mode development",
     "serve": "node ./dist/main.js",
@@ -10,6 +10,7 @@
     "lint": "eslint --fix --ext .js src"
   },
   "dependencies": {
+    "lodash": "^4.17.21",
     "mysql": "^2.18.1",
     "nodejs-websocket": "^1.7.2"
   },
