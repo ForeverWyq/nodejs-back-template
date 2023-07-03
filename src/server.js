@@ -23,7 +23,7 @@ Object.keys(fileMap).forEach(name => {
 
 // 接口白名单，无需token的接口列表
 const whiteList = WHITE_URL;
-module.exports = (ws, port) => {
+module.exports = (port, ws) => {
   const server = http.createServer((req, res) => {
     const { method } = req;
     if (method === 'OPTIONS') {
