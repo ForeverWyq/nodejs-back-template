@@ -94,7 +94,7 @@ function getInsertColumnWithVal(data, tableColumns) {
     return { column, arr };
   }
   const keys = [];
-  column.forEach(({ id }) => {
+  column.forEach((id) => {
     const value = data[id];
     if (!_.isNil(value)) {
       keys.push(id);
@@ -149,7 +149,7 @@ function updateById(data, table, tableColumns, tableMainKey) {
   const arr = [];
   tableColumns.forEach(({ id }) => {
     const value = data[id];
-    if (_.isNil(value) && id !== tableMainKey) {
+    if (!_.isNil(value) && id !== tableMainKey) {
       sets.push(`${id}=?`);
       arr.push(value);
     }
@@ -169,7 +169,7 @@ function updateById(data, table, tableColumns, tableMainKey) {
  * @returns {SqlCreateResult}
  */
 function removeByIds(ids, table, tableMainKey) {
-  const arr = ids.filter(_.isNil);
+  const arr = ids.filter(id => !_.isNil(id));
   return {
     sql: `delete from ${table} where ${tableMainKey} in (${new Array(arr.length).fill('?').join(',')})`,
     arr
@@ -185,7 +185,7 @@ function removeByIds(ids, table, tableMainKey) {
  * @returns {SqlCreateResult}
  */
 function logicRemoveByIds(ids, table, tableMainKey, logicField) {
-  const arr = ids.filter(_.isNil);
+  const arr = ids.filter(id => !_.isNil(id));
   return {
     sql: `update ${table} set ${logicField.id}=${logicField.logicDeleteValue} where ${tableMainKey} in (${new Array(arr.length).fill('?').join(',')})`,
     arr
