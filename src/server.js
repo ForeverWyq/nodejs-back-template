@@ -1,10 +1,12 @@
+const path = require('path');
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
-const handleTryCatch = require('@/utils/handleTryCatch');
+const multiparty = require('multiparty');
 
+const handleTryCatch = require('@/utils/handleTryCatch');
 const Router = require('@/utils/router');
-const { importAll } = require('@/utils/file');
+const { importAll, mkdirPath } = require('@/utils/file');
 const { getToken, checkoutToken } = require('./utils/auth');
 
 const BaseResponse = require('@/common/BaseResponse');
@@ -33,10 +35,34 @@ module.exports = (port, ws) => {
     }
     // 请求的地址 path_
     const path_ = url.parse(req.url).pathname;
+    const [fn, bodyType] = router.use(req.method, path_) || [];
+    if (!fn) {
+      BaseResponse.notFound(res, path_, req.method);
+      return;
+    }
     const token = getToken(req);
     // token合法性拦截
     if (!whiteList.includes(path_) && !checkoutToken(token)) {
       return BaseResponse.permissionDenied(res);
+    }
+
+    function callFn(...arg) {
+      handleTryCatch(fn, ...arg).then(([error]) => {
+        error && BaseResponse.error(res, error);
+      });
+    }
+
+    if (bodyType === 'form') {
+      mkdirPath('./file');
+      const formData = new multiparty.Form({ autoFields: true, autoFiles: true, uploadDir: path.resolve(process.cwd(), './file') });
+      formData.parse(req, (error, fields, files) => {
+        if (error) {
+          BaseResponse.error(res, error);
+          return;
+        }
+        callFn({ res, ws, fields, files });
+      });
+      return;
     }
 
     // 路径参数
@@ -53,16 +79,7 @@ module.exports = (port, ws) => {
       } catch (e) {
         data = {};
       }
-      const fn = router.use(req.method, path_);
-      if (!fn) {
-        BaseResponse.notFound(res, path_, req.method);
-        return;
-      }
-      handleTryCatch(fn, { res, paramsData: params, bodyData: data, ws }).then(([error]) => {
-        if (error) {
-          BaseResponse.error(res, error);
-        }
-      });
+      callFn({ res, paramsData: params, bodyData: data, ws });
     });
   });
 

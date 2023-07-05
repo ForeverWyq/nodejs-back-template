@@ -1,3 +1,4 @@
+const path = require('path');
 const fs = require('fs');
 
 /**
@@ -8,7 +9,7 @@ const fs = require('fs');
  */
 function readDirSync(path, callback, type = 'f') {
   const dir = fs.readdirSync(path);
-  dir.forEach(name => {
+  dir.forEach((name) => {
     const realPath = path + '/' + name;
     const info = fs.statSync(realPath);
     if (info.isDirectory()) {
@@ -43,7 +44,31 @@ const importAll = (context) => {
   return map;
 };
 
+/**
+ * 遍历查找路径的存在性，不存在则创建
+ * @param {string} pathStr 路径
+ * @returns {string} 全路径
+ */
+function mkdirPath(pathStr) {
+  let projectPath = path.join(process.cwd());
+  const tempDirArray = pathStr.split('\\');
+  for (let i = 0; i < tempDirArray.length; i++) {
+    projectPath = projectPath + '/' + tempDirArray[i];
+    if (fs.existsSync(projectPath)) {
+      const tempStat = fs.statSync(projectPath);
+      if (!tempStat.isDirectory()) {
+        fs.unlinkSync(projectPath);
+        fs.mkdirSync(projectPath);
+      }
+    } else {
+      fs.mkdirSync(projectPath);
+    }
+  }
+  return projectPath;
+}
+
 module.exports = {
   readDirSync,
-  importAll
+  importAll,
+  mkdirPath
 };

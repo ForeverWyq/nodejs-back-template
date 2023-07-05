@@ -6,7 +6,7 @@ class WebSocket {
   constructor(port) {
     this.socketList = [];
     this.ws = ws.createServer(this.wsServer);
-    this.ws.listen(port, function() {
+    this.ws.listen(port, () => {
       console.log('webSocket启动成功, 端口:' + port);
     });
   }
@@ -53,7 +53,7 @@ class WebSocket {
       if (!data.token) {
         return;
       }
-      const fn = distribute(data.path);
+      const [fn] = distribute(data.path);
       fn({ socket, wsData: data, res: WsResponse, ws: this });
     } catch (error) {
       WsResponse.error(socket, error.message);
@@ -66,13 +66,13 @@ class WebSocket {
     // 创建空的buffer对象，收集二进制数据
     var data = new Buffer(0);
     // 读取二进制数据的内容并且添加到buffer中
-    inStream.on('readable', function() {
-      var newData = inStream.read();
+    inStream.on('readable', () => {
+      const newData = inStream.read();
       if (newData) {
         data = Buffer.concat([data, newData], data.length + newData.length);
       }
     });
-    inStream.on('end', function() {
+    inStream.on('end', () => {
       // 读取完成二进制数据后，处理二进制数据
       console.log(data);
     });
