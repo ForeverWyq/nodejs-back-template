@@ -258,7 +258,7 @@ module.exports = {
     // 不以新行开始的块{前面要不要有空格
     'space-before-blocks': [2, 'always'],
     // 函数定义时括号前面要不要有空格
-    'space-before-function-paren': [2, 'never'],
+    'space-before-function-paren': [0, 'never'],
     // 小括号里面要不要有空格
     'space-in-parens': [2, 'never'],
     // 中缀操作符周围要不要有空格
