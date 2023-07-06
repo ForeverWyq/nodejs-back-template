@@ -2,6 +2,7 @@ const tokenKey = 'access_token';
 
 module.exports = {
   serverBaseUrl: '/serve',
+  fileSavePath: './files',
   serverPort: 8080,
   wsPort: 8081,
   // mysql配置

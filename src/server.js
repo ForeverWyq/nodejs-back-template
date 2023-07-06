@@ -1,4 +1,3 @@
-const path = require('path');
 const http = require('http');
 const url = require('url');
 const querystring = require('querystring');
@@ -11,8 +10,8 @@ const { getToken, checkoutToken } = require('./utils/auth');
 
 const BaseResponse = require('@/common/BaseResponse');
 const { WHITE_URL } = global.$CONSTANT;
-const files = require.context('./controller/', true, /\.js$/);
-const fileMap = importAll(files);
+const controllerFiles = require.context('./controller/', true, /\.js$/);
+const fileMap = importAll(controllerFiles);
 
 // 路由注册
 const router = new Router(global.$config.serverBaseUrl);
@@ -53,8 +52,7 @@ module.exports = (port, ws) => {
     }
 
     if (bodyType === 'form') {
-      mkdirPath('./file');
-      const formData = new multiparty.Form({ autoFields: true, autoFiles: true, uploadDir: path.resolve(process.cwd(), './file') });
+      const formData = new multiparty.Form({ uploadDir: mkdirPath(global.$config.fileSavePath) });
       formData.parse(req, (error, fields, files) => {
         if (error) {
           BaseResponse.error(res, error);

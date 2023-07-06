@@ -3,20 +3,20 @@ const fs = require('fs');
 
 /**
  * 遍历文件夹
- * @param {string} path 要遍历的路径
+ * @param {string} pathStr 要遍历的路径
  * @param {Function} callback 回调函数，每次取到文件/目录就回调
  * @param {string} type 获取类型 f 文件 d 目录, 默认文件
  */
-function readDirSync(path, callback, type = 'f') {
-  const dir = fs.readdirSync(path);
+function readDirSync(pathStr, callback, type = 'f') {
+  const dir = fs.readdirSync(pathStr);
   dir.forEach((name) => {
-    const realPath = path + '/' + name;
+    const realPath = pathStr + '/' + name;
     const info = fs.statSync(realPath);
     if (info.isDirectory()) {
       readDirSync(realPath, callback, type);
-      type === 'd' && callback && callback(name, path + '/');
+      type === 'd' && callback && callback(name, pathStr + '/');
     } else {
-      type === 'f' && callback && callback(name, path + '/');
+      type === 'f' && callback && callback(name, pathStr + '/');
     }
   });
 }

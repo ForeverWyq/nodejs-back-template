@@ -1,7 +1,5 @@
-const config = require(`./config.js`);
-
 module.exports = {
-  ...config,
+  serverPort: 10086,
   mysql: {
     host: 'localhost',
     port: '3306',

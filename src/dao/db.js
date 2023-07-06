@@ -4,6 +4,7 @@ const Lock = require('../utils/lock');
 class DB {
   constructor(conf) {
     this.pool = mysql.createPool(conf);
+    this.errNum = 0;
     this.lock = new Lock();
     this.connect();
   }
@@ -34,9 +35,18 @@ class DB {
   executeSql(sql, arr) {
     return new Promise((resolve, reject) => {
       this.lock.status.then(() => {
-        this.connection.query(sql, arr, (err, result) => {
+        this.connection.query(sql, arr, async (err, result) => {
           if (err) {
-            reject(err);
+            this.connection.release();
+            this.connection.destroy();
+            this.connection = null;
+            this.connect();
+            if (this.errNum > 0) {
+              reject(err);
+              return;
+            }
+            this.errNum++;
+            resolve(await this.executeSql(sql, arr));
           } else {
             resolve(result);
           }
