@@ -1,6 +1,7 @@
 {
   "editor.tabSize": 2,
   "editor.detectIndentation": false,
+  "prettier.singleQuote": true,
   "eslint.validate": [
     "javascript"
   ],

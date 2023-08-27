@@ -24,10 +24,10 @@ class Router {
    * 获取路径对应函数
    * @param {string} method 请求类型
    * @param {string} path 请求路径
-   * @returns {Array[Function, 'form' | 'json'] | undefined} 之前添加的函数
+   * @returns {Array} 之前添加的函数
    */
   use(method, path) {
-    const fn = this.pathMap.has(method) ? this.pathMap.get(method)[decodeURI(path)] : void 0;
+    const fn = this.pathMap.has(method) ? this.pathMap.get(method)[decodeURI(path)] : [];
     return fn;
   }
 }
