@@ -28,7 +28,7 @@ class Router {
    */
   use(method, path) {
     const fn = this.pathMap.has(method) ? this.pathMap.get(method)[decodeURI(path)] : [];
-    return fn;
+    return fn || [];
   }
 }
 

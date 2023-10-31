@@ -34,7 +34,7 @@ module.exports = (port, ws) => {
     }
     // 请求的地址 path_
     const path_ = url.parse(req.url).pathname;
-    const [fn, bodyType] = router.use(req.method, path_) || [];
+    const [fn, bodyType] = router.use(req.method, path_);
     if (!fn) {
       BaseResponse.notFound(res, path_, req.method);
       return;

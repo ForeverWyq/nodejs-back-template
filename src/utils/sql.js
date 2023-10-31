@@ -35,11 +35,11 @@ function whereCreated(data, tableColumns) {
       return;
     }
     if (queryType === QUERY_TYPE.exact) {
-      sql = `${sql} and ${table}.${id}=?`;
+      sql = `${sql} and ??.??=?`;
     } else {
-      sql = `${sql} and ${table}.${id} like ?`;
+      sql = `${sql} and ??.?? like ?`;
     }
-    arr.push(selectDataCreated(value, queryType));
+    arr.push(table, id, selectDataCreated(value, queryType));
   });
   return { sql, arr };
 }
@@ -49,13 +49,18 @@ function whereCreated(data, tableColumns) {
  * @param {Object} data 数据
  * @param {string} table 表名称
  * @param {TableColumn[]} tableColumns 表字段数组
+ * @param {string} order 排序字段名称
  * @returns {SqlCreateResult}
  */
-function select(data, table, tableColumns) {
+function select(data, table, tableColumns, order) {
   const { pageNum, pageSize, ...selectData } = data;
   const where = whereCreated(selectData, tableColumns.map(item => ({ ...item, table })));
-  const arr = where.arr;
-  let sql = `select * from ${table} ${where.sql}`;
+  let sql = `select ?? from ?? ${where.sql}`;
+  const arr = [tableColumns.map(({ id }) => id), table, ...where.arr];
+  if (order) {
+    sql = `${sql} order by ??`;
+    arr.push(order);
+  }
   if (pageNum && pageSize) {
     const start = ((Number(pageNum) - 1) * Number(pageSize));
     sql = `${sql} limit ?,?`;
@@ -69,11 +74,12 @@ function select(data, table, tableColumns) {
  * @param {Object} data 数据
  * @param {string} table 表名称
  * @param {TableColumn[]} tableColumns 表字段数组
+ * @param {string} tableMainKey 主键名称
  * @returns {SqlCreateResult}
  */
-function selectCount(data, table, tableColumns) {
+function selectCount(data, table, tableColumns, tableMainKey) {
   const { sql, arr } = whereCreated(data, tableColumns.map(item => ({ ...item, table })));
-  return { sql: `select count(*) as total from ${table} ${sql}`, arr };
+  return { sql: `select count(??) as total from ?? ${sql}`, arr: [tableMainKey, table, ...arr] };
 };
 
 /**
@@ -87,9 +93,11 @@ function getInsertColumnWithVal(data, tableColumns) {
   const arr = [];
   if (Array.isArray(data)) {
     data.forEach(item => {
+      const valArr = [];
       column.forEach(id => {
-        arr.push(item[id]);
+        valArr.push(item[id]);
       });
+      arr.push(valArr);
     });
     return { column, arr };
   }
@@ -101,12 +109,12 @@ function getInsertColumnWithVal(data, tableColumns) {
       arr.push(value);
     }
   });
-  return { column: keys, arr };
+  return { column: keys, arr: [arr] };
 }
 
 /**
  * 插入
- * @param {Object} data 数据
+ * @param {Object | Array} data 数据
  * @param {string} table 表名称
  * @param {TableColumn[]} tableColumns 表字段数组
  * @returns {SqlCreateResult}
@@ -114,27 +122,10 @@ function getInsertColumnWithVal(data, tableColumns) {
 function insert(data, table, tableColumns) {
   const { column, arr } = getInsertColumnWithVal(data, tableColumns);
   return {
-    sql: `insert into ${table} (${column.join(',')}) value (${new Array(arr.length).fill('?').join(',')})`,
-    arr
+    sql: `insert into ?? (??) values ?`,
+    arr: [table, column, arr]
   };
 };
-
-/**
- * 批量插入
- * @param {Object[]} data 数据
- * @param {string} table 表名称
- * @param {TableColumn[]} tableColumns 表字段数组
- * @returns {SqlCreateResult}
- */
-function batchInsert(data, table, tableColumns) {
-  const { column, arr } = getInsertColumnWithVal(data, tableColumns);
-  const col = `(${new Array(column.length).fill('?').join(',')})`;
-  const values = new Array(data.length).fill(col).join(',');
-  return {
-    sql: `insert into ${table} (${column.join(',')}) values ${values}`,
-    arr
-  };
-}
 
 /**
  * 更新
@@ -145,21 +136,63 @@ function batchInsert(data, table, tableColumns) {
  * @returns {SqlCreateResult}
  */
 function updateById(data, table, tableColumns, tableMainKey) {
-  const sets = [];
+  const sets = {};
   const arr = [];
   tableColumns.forEach(({ id }) => {
     const value = data[id];
-    if (!_.isNil(value) && id !== tableMainKey) {
-      sets.push(`${id}=?`);
-      arr.push(value);
+    if (!_.isUndefined(value) && id !== tableMainKey) {
+      sets[id] = value;
     }
   });
   arr.push(data[tableMainKey]);
   return {
-    sql: `update ${table} set ${sets.join(',')} where ${tableMainKey}=?`,
-    arr
+    sql: `update ?? set ? where ??=?`,
+    arr: [table, sets, tableMainKey, data[tableMainKey]]
   };
 };
+
+/**
+ * 批量更新
+ * @param {Object[]} data 数据
+ * @param {string} table 表名称
+ * @param {TableColumn[]} tableColumns 表字段数组
+ * @param {string} tableMainKey 主键名称
+ * @returns {SqlCreateResult}
+ */
+function batchUpdateById(data, table, tableColumns, tableMainKey) {
+  let sql = `update ?? set`;
+  const arr = [table];
+  let count = 0;
+  const ids = [];
+  tableColumns.forEach(({ id }) => {
+    let updateField = '';
+    const columnArr = [];
+    data.forEach((item) => {
+      const value = item[id];
+      const idValue = item[tableMainKey];
+      if (_.isUndefined(value)) {
+        return;
+      }
+      if (id === tableMainKey) {
+        idValue && ids.push(idValue);
+        return;
+      }
+      updateField = `${updateField} when ? then ?`;
+      columnArr.push(idValue, value);
+    });
+    if (updateField) {
+      if (count > 0) {
+        sql += ',';
+      }
+      sql = `${sql} ?? = case ?? ${updateField} else ?? end`;
+      count++;
+      arr.push(id, tableMainKey, ...columnArr, id);
+    }
+  });
+  sql = `${sql} where ?? in (?)`;
+  arr.push(tableMainKey, ids);
+  return { sql, arr };
+}
 
 /**
  * 批量删除
@@ -171,8 +204,8 @@ function updateById(data, table, tableColumns, tableMainKey) {
 function removeByIds(ids, table, tableMainKey) {
   const arr = ids.filter(id => !_.isNil(id));
   return {
-    sql: `delete from ${table} where ${tableMainKey} in (${new Array(arr.length).fill('?').join(',')})`,
-    arr
+    sql: `delete from ?? where ?? in (?)`,
+    arr: [table, tableMainKey, arr]
   };
 };
 
@@ -187,8 +220,8 @@ function removeByIds(ids, table, tableMainKey) {
 function logicRemoveByIds(ids, table, tableMainKey, logicField) {
   const arr = ids.filter(id => !_.isNil(id));
   return {
-    sql: `update ${table} set ${logicField.id}=${logicField.logicDeleteValue} where ${tableMainKey} in (${new Array(arr.length).fill('?').join(',')})`,
-    arr
+    sql: `update ?? set ??=? where ?? in (?)`,
+    arr: [table, logicField.id, logicField.logicDeleteValue, tableMainKey, arr]
   };
 }
 
@@ -196,8 +229,8 @@ module.exports = {
   select,
   selectCount,
   insert,
-  batchInsert,
   updateById,
+  batchUpdateById,
   removeByIds,
   logicRemoveByIds
 };

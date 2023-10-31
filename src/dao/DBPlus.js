@@ -4,36 +4,56 @@ const dbPlusConfig = global.$config.dbPlusConfig || {};
 
 class DBPlus {
   constructor(db, table) {
-    const { name, columns, mainKey, isLogicDelete } = table;
+    const { name, columns, mainKey, isLogicDelete, orderKey } = table;
     this.db = db;
     this.tableName = name;
     this.tableColumns = columns;
     this.mainKey = mainKey;
+    this.order = orderKey;
     const hasDelField = !!dbPlusConfig.logicDeleteField;
     this.isLogicDelete = _.isNil(isLogicDelete) ? hasDelField : (isLogicDelete && hasDelField);
     this.logicField = { id: dbPlusConfig.logicDeleteField, logicDeleteValue: dbPlusConfig.logicDeleteValue };
   }
-  async page(obj = {}) {
-    const { pageNum = 1, pageSize = 10, ...selectData } = obj;
-    const list = await this.select(obj);
+  async page(obj, order) {
+    const { pageNum = 1, pageSize = 10, ...selectData } = obj || {};
+    const list = await this.select(obj, order);
     const total = await this.count(selectData);
     return { list, total, pageSize, pageNum };
   }
-  async select(obj) {
-    const { sql, arr } = sqlCreate.select(obj, this.tableName, this.tableColumns);
+  async select(obj, order) {
+    const { sql, arr } = sqlCreate.select(obj, this.tableName, this.tableColumns, order || this.order);
     return await this.db.executeSql(sql, arr);
   }
   async count(obj) {
-    const { sql, arr } = sqlCreate.selectCount(obj, this.tableName, this.tableColumns);
+    const { sql, arr } = sqlCreate.selectCount(obj, this.tableName, this.tableColumns, this.mainKey);
     const [{ total }] = await this.db.executeSql(sql, arr);
     return total;
   }
-  async insert(obj) {
-    const { sql, arr } = sqlCreate[Array.isArray(obj) ? 'batchInsert' : 'insert'](obj, this.tableName, this.tableColumns);
+  /**
+   * 新增/批量新增
+   * @param {Object | Array<Object>} data
+   * @returns
+   */
+  async insert(data) {
+    const { sql, arr } = sqlCreate.insert(data, this.tableName, this.tableColumns);
     return await this.db.executeSql(sql, arr);
   }
+  /**
+   * 更新
+   * @param {Object} obj
+   * @returns
+   */
   async updateById(obj) {
     const { sql, arr } = sqlCreate.updateById(obj, this.tableName, this.tableColumns, this.mainKey);
+    return await this.db.executeSql(sql, arr);
+  }
+  /**
+   * 批量更新
+   * @param {Array<Object>} data
+   * @returns
+   */
+  async batchUpdateById(data) {
+    const { sql, arr } = sqlCreate.updateById(data, this.tableName, this.tableColumns, this.mainKey);
     return await this.db.executeSql(sql, arr);
   }
   async removeById(id) {

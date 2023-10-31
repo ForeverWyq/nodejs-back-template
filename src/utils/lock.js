@@ -16,7 +16,7 @@ class Lock {
     return true;
   }
   unlock() {
-    this.callback(true);
+    typeof this.callback === 'function' && this.callback(true);
     this.init();
   }
 }
