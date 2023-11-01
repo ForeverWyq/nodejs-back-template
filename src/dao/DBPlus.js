@@ -53,7 +53,7 @@ class DBPlus {
    * @returns
    */
   async batchUpdateById(data) {
-    const { sql, arr } = sqlCreate.updateById(data, this.tableName, this.tableColumns, this.mainKey);
+    const { sql, arr } = sqlCreate.batchUpdateById(data, this.tableName, this.tableColumns, this.mainKey);
     return await this.db.executeSql(sql, arr);
   }
   async removeById(id) {
