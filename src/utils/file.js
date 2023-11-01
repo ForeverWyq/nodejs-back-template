@@ -51,7 +51,13 @@ const importAll = (context) => {
  */
 function mkdirPath(pathStr) {
   let projectPath = path.join(process.cwd());
-  const tempDirArray = pathStr.split('\\');
+  const tempDirArray = pathStr.split(/\\|\//);
+  if (pathStr.indexOf(':') === 1) {
+    projectPath = tempDirArray[0];
+    tempDirArray.splice(0, 1);
+  } else if (pathStr.includes(':')) {
+    throw new Error('文件路径有误');
+  }
   for (let i = 0; i < tempDirArray.length; i++) {
     projectPath = projectPath + '/' + tempDirArray[i];
     if (fs.existsSync(projectPath)) {
@@ -67,8 +73,66 @@ function mkdirPath(pathStr) {
   return projectPath;
 }
 
+/**
+ * 保存axios返回文件到指定目录
+ * @param {string} fileName 文件名称非必传
+ * @param {object} headers Axios返回值请求头
+ * @param {ArrayBuffer} fileData 文件内容
+ * @param {string} outPutPath 文件输出路径
+ * @returns {string[]} [文件全路径, 文件全名称]
+ */
+function saveAxiosFile(fileName, headers, fileData, outPutPath = global.$config.fileSavePath) {
+  const disposition = decodeURIComponent(headers['content-disposition'])?.replace(/\"|\'/g, '');
+  let fileFullName = disposition.split('filename=')[1];
+  if (fileName) {
+    const suffix = disposition.split('.');
+    fileFullName = `${fileName}.${suffix[suffix.length - 1]}`;
+  }
+  if (!fileFullName) {
+    throw new Error('文件名称错误');
+  }
+  fileFullName = fileFullName.replace(/\s*/g, '');
+  const outPutFilePath = path.join(outPutPath, fileFullName);
+  fs.writeFileSync(outPutFilePath, fileData);
+  return [outPutFilePath, fileFullName];
+}
+
+/**
+ * 复制文件到路径没有则创建
+ * @param {string} oldPath 文件路径(包含文件名称)
+ * @param {string} newPath 目标路径(不包含文件名称)
+ * @param {string} fileFullName 文件名称
+ * @returns {string} 新文件路径
+ */
+function copyFileToPath(oldPath, newPath, fileFullName) {
+  const file = fs.readFileSync(oldPath);
+  const dirPath = mkdirPath(newPath);
+  const filePath = path.join(dirPath, fileFullName);
+  fs.writeFileSync(filePath, file);
+  return filePath;
+}
+
+/**
+ * 批量删除文件
+ * @param {string[]} paths 
+ */
+function deleteFiles(paths) {
+  paths.forEach((pathStr) => {
+    pathStr && fs.access(pathStr, fs.constants.F_OK, (err) => {
+      if (err) {
+        // 代表文件不存在无需删除
+        return;
+      }
+      fs.unlinkSync(pathStr);
+    });
+  });
+}
+
 module.exports = {
   readDirSync,
   importAll,
-  mkdirPath
+  mkdirPath,
+  saveAxiosFile,
+  copyFileToPath,
+  deleteFiles
 };
