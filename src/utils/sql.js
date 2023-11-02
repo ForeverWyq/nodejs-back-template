@@ -57,9 +57,13 @@ function select(data, table, tableColumns, order) {
   const where = whereCreated(selectData, tableColumns.map(item => ({ ...item, table })));
   let sql = `select ?? from ?? ${where.sql}`;
   const arr = [tableColumns.map(({ id }) => id), table, ...where.arr];
-  if (order) {
+  const { field, type } = order || {};
+  if (field) {
     sql = `${sql} order by ??`;
-    arr.push(order);
+    arr.push(field);
+    if (type?.toLowerCase() === 'desc') {
+      sql = `${sql} DESC`;
+    }
   }
   if (pageNum && pageSize) {
     const start = ((Number(pageNum) - 1) * Number(pageSize));

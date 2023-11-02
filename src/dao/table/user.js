@@ -9,5 +9,8 @@ module.exports = {
     { id: 'username', queryType: QUERY_TYPE.head },
     { id: 'update_time', unInsert: true }
   ],
-  orderKey: 'update_time'
+  orderKey: {
+    field: 'update_time',
+    type: 'desc'
+  }
 };
