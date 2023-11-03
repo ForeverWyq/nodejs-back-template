@@ -8,13 +8,11 @@ const { QUERY_TYPE } = global.$CONSTANT;
  * @returns {string | number}
  */
 function selectDataCreated(value, queryType) {
-  if (_.isNil(value)) {
-    return value;
-  }
+  const searchValue = value.replace(/[%_\\]/g, (v) => `\\${v}`);
   const map = new Map([
-    [QUERY_TYPE.head, `${value}%`],
-    [QUERY_TYPE.last, `%${value}`],
-    [QUERY_TYPE.includes, value !== '' ? `%${value}%` : '%'],
+    [QUERY_TYPE.head, `${searchValue}%`],
+    [QUERY_TYPE.last, `%${searchValue}`],
+    [QUERY_TYPE.includes, value !== '' ? `%${searchValue}%` : '%'],
     [QUERY_TYPE.exact, value]
   ]);
   return map.get(queryType) || value;
@@ -31,13 +29,13 @@ function whereCreated(data, tableColumns) {
   const arr = [];
   tableColumns.forEach(({ id, dataKey, table, queryType }) => {
     const value = data[_.isNil(dataKey) ? id : dataKey];
-    if (_.isNil(value)) {
+    if (_.isEmpty(value) && !_.isNumber(value)) {
       return;
     }
     if (queryType === QUERY_TYPE.exact) {
       sql = `${sql} and ??.??=?`;
     } else {
-      sql = `${sql} and ??.?? like ?`;
+      sql = `${sql} and ??.?? like ? escape '\\\\'`;
     }
     arr.push(table, id, selectDataCreated(value, queryType));
   });
