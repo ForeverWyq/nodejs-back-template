@@ -7,7 +7,7 @@ class WsResponse {
       data,
       message: message || '成功'
     };
-    socket.sendText(JSON.stringify(params));
+    socket.send(JSON.stringify(params));
   }
   error(socket, err, message) {
     const params = {
@@ -15,7 +15,7 @@ class WsResponse {
       err,
       message: message || '系统错误'
     };
-    socket.sendText(JSON.stringify(params));
+    socket.send(JSON.stringify(params));
   }
 }
 

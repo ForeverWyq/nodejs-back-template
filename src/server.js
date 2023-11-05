@@ -3,29 +3,51 @@ const url = require('url');
 const querystring = require('querystring');
 const multiparty = require('multiparty');
 
+const BaseResponse = require('@/common/BaseResponse');
+const WebSocket = require('@/webSocket/index');
+
 const handleTryCatch = require('@/utils/handleTryCatch');
 const Router = require('@/utils/router');
 const { importAll, mkdirPath } = require('@/utils/file');
 const { getToken, checkoutToken } = require('./utils/auth');
 
-const BaseResponse = require('@/common/BaseResponse');
-const { WHITE_URL } = global.$CONSTANT;
-const controllerFiles = require.context('./controller/', true, /\.js$/);
-const fileMap = importAll(controllerFiles);
-
-// 路由注册
-const router = new Router(global.$config.serverBaseUrl);
-Object.keys(fileMap).forEach(name => {
-  const register = fileMap[name];
-  if (typeof register === 'function') {
-    register(router);
+class HttpServer {
+  constructor(options) {
+    const {
+      serverBaseUrl,
+      serverPort,
+      WHITE_URL,
+      fileSavePath
+    } = options;
+    this.whiteList = WHITE_URL;
+    this.fileSavePath = fileSavePath;
+    this.router = this.registeredRoute(serverBaseUrl);
+    this.server = http.createServer((req, res) => this.httpRequest(req, res));
+    this.ws = this.createWebSocketServer();
+    this.listen(serverPort);
   }
-});
-
-// 接口白名单，无需token的接口列表
-const whiteList = WHITE_URL;
-module.exports = (port, ws) => {
-  const server = http.createServer((req, res) => {
+  listen(port) {
+    this.server.listen(port, () => {
+      console.log('HttpServer启动成功, 端口:' + port);
+    });
+  }
+  registeredRoute(baseUrl) {
+    // 路由注册
+    const controllerFiles = require.context('./controller/', true, /\.js$/);
+    const fileMap = importAll(controllerFiles);
+    const router = new Router(baseUrl);
+    Object.keys(fileMap).forEach(name => {
+      const register = fileMap[name];
+      if (typeof register === 'function') {
+        register(router);
+      }
+    });
+    return router;
+  }
+  createWebSocketServer() {
+    return new WebSocket(this.server);
+  }
+  httpRequest(req, res) {
     const { method } = req;
     if (method === 'OPTIONS') {
       // 回复OPTIONS
@@ -34,38 +56,38 @@ module.exports = (port, ws) => {
     }
     // 请求的地址 path_
     const path_ = url.parse(req.url).pathname;
-    const [fn, bodyType] = router.use(req.method, path_);
+    const [fn, bodyType] = this.router.use(method, path_);
     if (!fn) {
-      BaseResponse.notFound(res, path_, req.method);
+      BaseResponse.notFound(res, path_, method);
       return;
     }
     const token = getToken(req);
     // token合法性拦截
-    if (!whiteList.includes(path_) && !checkoutToken(token)) {
+    if (!this.whiteList.includes(path_) && !checkoutToken(token)) {
       return BaseResponse.permissionDenied(res);
     }
-
-    function callFn(...arg) {
-      handleTryCatch(fn, ...arg).then(([error]) => {
-        error && BaseResponse.error(res, error);
-      });
-    }
-
     if (bodyType === 'form') {
-      const formData = new multiparty.Form({ uploadDir: mkdirPath(global.$config.fileSavePath) });
-      formData.parse(req, (error, fields, files) => {
-        if (error) {
-          BaseResponse.error(res, error);
-          return;
-        }
-        callFn({ res, ws, fields, files });
-      });
-      return;
+      return this.formRequest(fn, req, res);
     }
-
+    this.otherTypeRequest(fn, req, res);
+  }
+  callFn(fn, ...arg) {
+    handleTryCatch(fn, ...arg).then(([error]) => {
+      error && BaseResponse.error(res, error);
+    });
+  }
+  formRequest(fn, req, res) {
+    const formData = new multiparty.Form({ uploadDir: mkdirPath(this.fileSavePath) });
+    formData.parse(req, (error, fields, files) => {
+      if (error) {
+        return BaseResponse.error(res, error);
+      }
+      this.callFn(fn, { res, ws: this.ws, fields, files });
+    });
+  }
+  otherTypeRequest(fn, req, res) {
     // 路径参数
     const params = querystring.parse(url.parse(req.url).query);
-
     let buffer = Buffer.from([]);
     req.on('data', (data) => {
       buffer += data;
@@ -77,11 +99,9 @@ module.exports = (port, ws) => {
       } catch (e) {
         data = {};
       }
-      callFn({ res, paramsData: params, bodyData: data, ws });
+      this.callFn(fn, { res, paramsData: params, bodyData: data, ws: this.ws });
     });
-  });
+  }
+}
 
-  server.listen(port, () => {
-    console.log('server启动成功, 端口:' + port);
-  });
-};
+module.exports = HttpServer;
