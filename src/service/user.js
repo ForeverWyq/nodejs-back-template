@@ -25,7 +25,10 @@ async function login({ userAccount, password }) {
 }
 
 async function getUserInfo({ id }) {
-  const infoData = await user.select({ id });
+  if (!id) {
+    throw new Error('参数错误');
+  }
+  const [infoData] = await user.select({ id });
   return getSafeUserData(infoData);
 }
 

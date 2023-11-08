@@ -22,14 +22,14 @@ function getToken(req) {
 }
 
 // token合法性校验
-function checkoutToken(token) {
+function verifyToken(token) {
   if (!token) {
-    return false;
+    return null;
   }
   try {
-    return !!tokenGenerator.verify(token);
+    return tokenGenerator.verify(token);
   } catch(err) {
-    return false;
+    return null;
   }
 }
 
@@ -37,5 +37,5 @@ module.exports = {
   createToken,
   refreshToken,
   getToken,
-  checkoutToken
+  verifyToken
 };

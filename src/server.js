@@ -9,7 +9,7 @@ const WebSocket = require('@/webSocket/index');
 const handleTryCatch = require('@/utils/handleTryCatch');
 const Router = require('@/utils/router');
 const { importAll, mkdirPath } = require('@/utils/file');
-const { getToken, checkoutToken } = require('./utils/auth');
+const { getToken, verifyToken } = require('./utils/auth');
 
 class HttpServer {
   constructor(options) {
@@ -63,29 +63,33 @@ class HttpServer {
     }
     const token = getToken(req);
     // token合法性拦截
-    if (!this.whiteList.includes(path_) && !checkoutToken(token)) {
+    const tokenInfo = verifyToken(token);
+    if (!this.whiteList.includes(path_) && !tokenInfo) {
       return BaseResponse.permissionDenied(res);
     }
+    const requestParams = { req, res, tokenInfo, ws: this.ws };
     if (bodyType === 'form') {
-      return this.formRequest(fn, req, res);
+      return this.formRequest(fn, requestParams);
     }
-    this.otherTypeRequest(fn, req, res);
+    this.otherTypeRequest(fn, requestParams);
   }
   callFn(fn, res, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {
       error && BaseResponse.error(res, error.message);
     });
   }
-  formRequest(fn, req, res) {
+  formRequest(fn, requestParams) {
+    const { req, res } = requestParams;
     const formData = new multiparty.Form({ uploadDir: mkdirPath(this.fileSavePath) });
     formData.parse(req, (error, fields, files) => {
       if (error) {
         return BaseResponse.error(res, error);
       }
-      this.callFn(fn, res, { res, ws: this.ws, fields, files });
+      this.callFn(fn, res, { ...requestParams, fields, files });
     });
   }
-  otherTypeRequest(fn, req, res) {
+  otherTypeRequest(fn, requestParams) {
+    const { req, res } = requestParams;
     // 路径参数
     const params = querystring.parse(url.parse(req.url).query);
     let buffer = Buffer.from([]);
@@ -99,7 +103,7 @@ class HttpServer {
       } catch (e) {
         data = {};
       }
-      this.callFn(fn, res, { res, paramsData: params, bodyData: data, ws: this.ws });
+      this.callFn(fn, res, { ...requestParams, paramsData: params, bodyData: data });
     });
   }
 }
