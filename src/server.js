@@ -71,9 +71,9 @@ class HttpServer {
     }
     this.otherTypeRequest(fn, req, res);
   }
-  callFn(fn, ...arg) {
+  callFn(fn, res, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {
-      error && BaseResponse.error(res, error);
+      error && BaseResponse.error(res, error.message);
     });
   }
   formRequest(fn, req, res) {
@@ -82,7 +82,7 @@ class HttpServer {
       if (error) {
         return BaseResponse.error(res, error);
       }
-      this.callFn(fn, { res, ws: this.ws, fields, files });
+      this.callFn(fn, res, { res, ws: this.ws, fields, files });
     });
   }
   otherTypeRequest(fn, req, res) {
@@ -99,7 +99,7 @@ class HttpServer {
       } catch (e) {
         data = {};
       }
-      this.callFn(fn, { res, paramsData: params, bodyData: data, ws: this.ws });
+      this.callFn(fn, res, { res, paramsData: params, bodyData: data, ws: this.ws });
     });
   }
 }

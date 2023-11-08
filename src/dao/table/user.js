@@ -7,10 +7,12 @@ module.exports = {
   columns: [
     { id: 'id', queryType: QUERY_TYPE.exact },
     { id: 'username', queryType: QUERY_TYPE.head },
-    { id: 'update_time', unInsert: true }
+    { id: 'userAccount', queryType: QUERY_TYPE.exact },
+    { id: 'userPassword', queryType: QUERY_TYPE.exact },
+    { id: 'updateTime', unInsert: true }
   ],
   orderKey: {
-    field: 'update_time',
+    field: 'updateTime',
     type: 'desc'
   }
 };

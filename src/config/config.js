@@ -1,10 +1,18 @@
+// 接收token的请求头key值
 const tokenKey = 'access_token';
 
 module.exports = {
+  // 服务前缀路径
   serverBaseUrl: '/serve',
+  // 文件保存路径
   fileSavePath: './files',
+  // 服务端口
   serverPort: 8080,
-  // mysql配置
+  // token私钥
+  privateKey: 'nodejs-back-template-private-key',
+  // token生效时长，{string | number} 数字单位秒
+  expiresIn: '1d',
+  // mysql配置: 详见npm mysql介绍
   mysql: {
     host: 'localhost',
     port: '3306',

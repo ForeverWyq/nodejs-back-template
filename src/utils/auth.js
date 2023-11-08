@@ -1,11 +1,16 @@
-const { tokenKey } = global.$config;
+const TokenGenerator = require('./TokenGenerator');
+const { tokenKey, privateKey, expiresIn } = global.$config;
+
+const tokenGenerator = new TokenGenerator(privateKey, privateKey, { expiresIn })
 
 // 创建token
 function createToken(userInfo) {
-  const token = 'XXXXXXXX';
-  // 自行实现生成逻辑
-  return token;
+  return tokenGenerator.sign(userInfo, { audience: 'myaud', issuer: 'ziqi', subject: 'user' });
 };
+
+function refreshToken(token) {
+  return tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'ziqi' } })
+}
 
 /**
  * 获取token
@@ -21,12 +26,16 @@ function checkoutToken(token) {
   if (!token) {
     return false;
   }
-  // 自行实现校验逻辑
-  return true;
+  try {
+    return !!tokenGenerator.verify(token);
+  } catch(err) {
+    return false;
+  }
 }
 
 module.exports = {
   createToken,
+  refreshToken,
   getToken,
   checkoutToken
 };

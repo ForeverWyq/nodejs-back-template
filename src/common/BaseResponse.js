@@ -18,7 +18,7 @@ class BaseResponse {
     res.writeHead(200, this.head);
     res.end(JSON.stringify(params));
   }
-  error(res, err, message) {
+  error(res, message, err) {
     const params = {
       code: RESPONSE.ERROR_CODE,
       err,

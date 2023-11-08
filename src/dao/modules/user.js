@@ -2,13 +2,10 @@ const db = require('../db');
 const DBPlus = require('../DBPlus');
 const table = require('../table/user');
 
-const userTable = new DBPlus(db, table);
-
-async function selectUerInfo({ id }) {
-  const [userInfo] = await userTable.select({ id });
-  return userInfo;
+class User extends DBPlus {
+  constructor() {
+    super(db, table);
+  }
 }
 
-module.exports = {
-  selectUerInfo
-};
+module.exports = new User();
