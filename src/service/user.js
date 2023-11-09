@@ -1,5 +1,7 @@
-const user = require('@/dao/modules/user');
+const User = require('@/dao/modules/user');
 const { createToken } = require('@/utils/auth');
+
+const user = new User();
 
 function getSafeUserData(userInfo) {
   const params = { ...userInfo };

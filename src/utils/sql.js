@@ -8,7 +8,7 @@ const { QUERY_TYPE } = global.$CONSTANT;
  * @returns {string | number}
  */
 function selectDataCreated(value, queryType) {
-  const searchValue = value.replace(/[%_\\]/g, (v) => `\\${v}`);
+  const searchValue = String(value).replace(/[%_\\]/g, (v) => `\\${v}`);
   const map = new Map([
     [QUERY_TYPE.head, `${searchValue}%`],
     [QUERY_TYPE.last, `%${searchValue}`],
