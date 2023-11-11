@@ -11,6 +11,7 @@ class Router {
    * @param {'json' | 'form'} type 请求类型
    */
   setRoute(method, path, callback, type = 'json') {
+    method = method.toUpperCase();
     const fullPath = `${this.contextRoot}${path}`;
     if (!this.pathMap.has(method)) {
       this.pathMap.set(method, {
@@ -20,6 +21,21 @@ class Router {
       this.pathMap.get(method)[fullPath] = [callback, type];
     }
   }
+  get(...arg) {
+    this.setRoute('GET', ...arg);
+  }
+  post(...arg) {
+    this.setRoute('POST', ...arg);
+  }
+  put(...arg) {
+    this.setRoute('PUT', ...arg);
+  }
+  delete(...arg) {
+    this.setRoute('DELETE', ...arg);
+  }
+  patch(...arg) {
+    this.setRoute('PATCH', ...arg);
+  }
   /**
    * 获取路径对应函数
    * @param {string} method 请求类型
@@ -27,6 +43,7 @@ class Router {
    * @returns {Array} 之前添加的函数
    */
   use(method, path) {
+    method = method.toUpperCase();
     const fn = this.pathMap.has(method) ? this.pathMap.get(method)[decodeURI(path)] : [];
     return fn || [];
   }

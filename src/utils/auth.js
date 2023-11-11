@@ -1,41 +1,64 @@
 const TokenGenerator = require('./TokenGenerator');
-const { tokenKey, privateKey, expiresIn } = global.$config;
+const { tokenConf, refreshTokenConf } = global.$config;
 
-const tokenGenerator = new TokenGenerator(privateKey, privateKey, { expiresIn })
-
-// 创建token
-function createToken(userInfo) {
-  return tokenGenerator.sign(userInfo, { audience: 'myaud', issuer: 'ziqi', subject: 'user' });
-};
-
-function refreshToken(token) {
-  return tokenGenerator.refresh(token, { verify: { audience: 'myaud', issuer: 'ziqi' } })
-}
-
-/**
- * 获取token
- * @param {request} req 请求的request
- * @returns token
- */
-function getToken(req) {
-  return req.headers[tokenKey];
-}
-
-// token合法性校验
-function verifyToken(token) {
-  if (!token) {
-    return null;
+class Auth {
+  constructor(options) {
+    const { key, headerKey, ...tokenOptions } = options;
+    this.tokenKey = key;
+    this.headerKey = headerKey;
+    this.tokenGenerator = new TokenGenerator(tokenOptions);
   }
-  try {
-    return tokenGenerator.verify(token);
-  } catch(err) {
-    return null;
+  /**
+   * 获取token
+   * @param {req | string} req 请求头或者token
+   * @returns {string}
+   */
+  getToken(req) {
+    if (typeof req === 'object') {
+      return req.headers[this.tokenKey];
+    }
+    return req;
+  }
+  createToken(tokenInfo = {}) {
+    if (_.isEmpty(tokenInfo)) {
+      throw new Error('用户信息错误');
+    }
+    return this.tokenGenerator.sign(tokenInfo);
+  }
+  /**
+   * token校验
+   * @param {string | payload} token token或token解析结果
+   * @returns {string | null}
+   */
+  refreshToken(token) {
+    try {
+      return this.tokenGenerator.refresh(token);
+    } catch (error) {
+      return null;
+    }
+  }
+  /**
+   * token校验
+   * @param {req | string} token 请求头或者token
+   * @returns {null | object}
+   */
+  verifyToken(token) {
+    const tokenstr = this.getToken(token);
+    if (!tokenstr) {
+      return null;
+    }
+    try {
+      return this.tokenGenerator.verify(tokenstr);
+    } catch(err) {
+      return null;
+    }
   }
 }
+
+const tokenAuth = new Auth(tokenConf);
+const refreshTokenAuth = new Auth(refreshTokenConf);
 
 module.exports = {
-  createToken,
-  refreshToken,
-  getToken,
-  verifyToken
+  tokenAuth,
+  refreshTokenAuth
 };

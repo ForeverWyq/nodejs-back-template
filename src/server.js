@@ -9,7 +9,7 @@ const WebSocket = require('@/webSocket/index');
 const handleTryCatch = require('@/utils/handleTryCatch');
 const Router = require('@/utils/router');
 const { importAll, mkdirPath } = require('@/utils/file');
-const { getToken, verifyToken } = require('./utils/auth');
+const { tokenAuth, refreshTokenAuth } = require('./utils/auth');
 
 class HttpServer {
   constructor(options) {
@@ -61,17 +61,43 @@ class HttpServer {
       BaseResponse.notFound(res, path_, method);
       return;
     }
-    const token = getToken(req);
-    // token合法性拦截
-    const tokenInfo = verifyToken(token);
-    if (!this.whiteList.includes(path_) && !tokenInfo) {
-      return BaseResponse.permissionDenied(res);
+    const tokenInfo = this.authVerify(req, path_);
+    if (!tokenInfo || tokenInfo.refresh) {
+      return BaseResponse.permissionDenied(res, this.getTokenHeader(tokenInfo));
     }
     const requestParams = { req, res, tokenInfo, ws: this.ws };
     if (bodyType === 'form') {
       return this.formRequest(fn, requestParams);
     }
     this.otherTypeRequest(fn, requestParams);
+  }
+  authVerify(req, path_) {
+    if (this.whiteList.includes(path_)) {
+      return { whitePath: true };
+    }
+    // token合法性拦截
+    const tokenInfo = tokenAuth.verifyToken(req);
+    if (tokenInfo) {
+      return tokenInfo;
+    }
+    const refreshTokenInfo = refreshTokenAuth.verifyToken(req);
+    if (refreshTokenInfo) {
+      return { ...refreshTokenInfo, refresh: true };
+    }
+    return null;
+  }
+  getTokenHeader(tokenInfo) {
+    if (!tokenInfo) {
+      return {};
+    }
+    const info = { ...tokenInfo };
+    delete info.refresh;
+    const newToken = tokenAuth.refreshToken(info);
+    const newRefreshToken = refreshTokenAuth.refreshToken(info);
+    return {
+      [tokenAuth.headerKey]: newToken,
+      [refreshTokenAuth.headerKey]: newRefreshToken,
+    }
   }
   callFn(fn, res, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {

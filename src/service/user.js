@@ -1,5 +1,4 @@
 const User = require('@/dao/modules/user');
-const { createToken } = require('@/utils/auth');
 
 const user = new User();
 
@@ -20,10 +19,7 @@ async function login({ userAccount, password }) {
     throw new Error('用户名或者密码错误');
   }
   const safeData = getSafeUserData(infoData);
-  return {
-    info: safeData,
-    token: createToken(safeData)
-  }
+  return safeData;
 }
 
 async function getUserInfo({ id }) {
