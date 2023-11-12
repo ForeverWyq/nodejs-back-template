@@ -4,7 +4,7 @@ class TokenGenerator {
   constructor(options = {}) {
     const { privateKey, publicKey, ...otherOptions } = options;
     this.secretOrPrivateKey = privateKey;
-    this.secretOrPublicKey = publicKey;
+    this.secretOrPublicKey = publicKey || privateKey;
     this.options = otherOptions; // algorithm + keyid + noTimestamp + expiresIn + notBefore
   }
   sign(payload, signOptions = {}) {

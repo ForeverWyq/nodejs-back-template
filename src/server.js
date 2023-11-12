@@ -62,8 +62,12 @@ class HttpServer {
       return;
     }
     const tokenInfo = this.authVerify(req, path_);
-    if (!tokenInfo || tokenInfo.refresh) {
-      return BaseResponse.permissionDenied(res, this.getTokenHeader(tokenInfo));
+    if (!tokenInfo) {
+      return BaseResponse.permissionDenied(res);
+    }
+    if (tokenInfo.refresh) {
+      const headers = this.getTokenHeader(tokenInfo);
+      Object.keys(headers).forEach(key => res.setHeader(key, headers[key]));
     }
     const requestParams = { req, res, tokenInfo, ws: this.ws };
     if (bodyType === 'form') {
