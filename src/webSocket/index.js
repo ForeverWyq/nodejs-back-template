@@ -3,21 +3,116 @@ const WsResponse = require('./WsResponse');
 const distribute = require('./distribute');
 
 class WebSocket {
-  constructor(server) {
+  constructor(server, deviceTypeMaxMap) {
+    // 允许连接设备类型
+    this.allowDeviceType = Object.keys(deviceTypeMaxMap);
+    // 单用户每种类型设备允许连接映射
+    this.deviceTypeMaxMap = deviceTypeMaxMap || { web: 1 };
+    // 用户 -> 连接 映射
+    this.userSocketMap = new Map();
+    // 连接 -> 用户 映射
+    this.socketToUserMap = new WeakMap();
     this.ws = new ws.WebSocketServer({ server });
     const eventList = ['message', 'error', 'close'];
     this.ws.on('connection', (socket) => {
       eventList.forEach(type => this.event(socket, type));
     });
   }
+  /**
+   * 存储userSocketItem
+   * @param {Socket} socket
+   * @param {string} uid 用户主键
+   * @param {string} deviceType 用户设备类型，考虑到多设备登录区分socket
+   */
+  setSocket(socket, uid, deviceType = 'web') {
+    if (_.isEqual(this.socketToUserMap.get(socket), uid)) {
+      return;
+    }
+    if (!this.allowDeviceType.includes(deviceType)) {
+      WsResponse.error(socket, '', '错误的设备类型');
+      socket.close();
+      return;
+    }
+    this.removeSocket(socket);
+    const max = this.deviceTypeMaxMap[deviceType] || 1;
+    this.socketToUserMap.set(socket, uid);
+    const socketDeviceMap = this.userSocketMap.get(uid);
+    if (_.isEmpty(socketDeviceMap)) {
+      return this.userSocketMap.set(uid, { [deviceType]: [socket] });
+    }
+    const deviceSocket = socketDeviceMap[deviceType];
+    if (_.isEmpty(deviceSocket)) {
+      return socketDeviceMap[deviceType] = [socket];
+    }
+    deviceSocket.push(socket);
+    if (deviceSocket.length > max) {
+      const [abandonSocket] = deviceSocket.splice(0, 1);
+      WsResponse.exceedMaximum(abandonSocket);
+      abandonSocket.close();
+    }
+  }
+  /**
+   * 删除socket对象
+   * @param {socket} socket 
+   */
+  removeSocket(socket) {
+    const uid = this.socketToUserMap.get(socket);
+    if (!uid) {
+      return;
+    }
+    this.socketToUserMap.delete(socket);
+    const socketDeviceMap = this.userSocketMap.get(uid);
+    const socketDeviceList = Object.values(socketDeviceMap);
+    for (let i = 0; i < socketDeviceList.length; i++) {
+      const sockets = socketDeviceList[i];
+      if (_.isEmpty(sockets)) {
+        continue;
+      }
+      const index = sockets.findIndex(socketItem => Object.is(socket, socketItem))
+      if (index !== -1) {
+        return sockets.splice(index, 1);
+      }
+    }
+    WsResponse.error(socket, '', '连接丢失');
+  }
+  /**
+   * 获取对应uid的Set对象
+   * @param {string} uid 用户id
+   * @returns {socket[]}
+   */
+  async getSockets(uid) {
+    const socketDeviceMap = this.userSocketMap.get(uid);
+    const socketList = [];
+    Object.values(socketDeviceMap).forEach(sockets => {
+      if (_.isEmpty(sockets)) {
+        return;
+      }
+      socketList.push(...sockets);
+    });
+    return socketList;
+  }
+  /**
+   * 获取多用户socket组成的数组
+   * @param {string[]} uidList
+   */
+  getMoreUserSockets(uidList) {
+    const socketList = [];
+    for (const uid of uidList) {
+      socketList.push([...this.getSockets(uid)]);
+    }
+    return socketList;
+  }
   // 事件分发
   event(socket, type) {
     socket.on(type, (...arg) => this[type](socket, ...arg));
   }
-  close(socket, code) {
+  close(socket, code, reason) {
+    console.log(code, reason);
+    this.removeSocket(socket);
     console.log('连接关闭', code);
   }
   error(socket) {
+    this.removeSocket(socket);
     console.log('连接异常');
   }
   // message需包含 socketType token
@@ -27,24 +122,30 @@ class WebSocket {
     }
     try {
       const data = JSON.parse(str);
-      if (!data.token) {
+      const { token, path, data: wsData } = data;
+      if (!token) {
         return;
       }
-      const [fn] = distribute(data.path);
-      fn({ socket, wsData: data, res: WsResponse, ws: this });
+      // TODO: 移动到对应接口下、token解析
+      this.setSocket(socket, data.token);
+      const [fn] = distribute(path);
+      if (!fn) {
+        return WsResponse.error(socket, error.message);;
+      }
+      fn({ socket, wsData, token, res: WsResponse, ws: this });
     } catch (error) {
       WsResponse.error(socket, error.message);
     }
   }
   /**
-   * 回复前端JSON数据 TODO: 未完成
-   * @param {Array<T>} keys 发送人的主键数组
+   * 回复前端JSON数据
+   * @param {string[]} keys 发送人的主键数组
    * @param {string} type 消息类型，方便前端去分发处理
    * @param {object} data 要返回的数据
    */
   sendJson(keys, type, data) {
-    // const sendSocketList = this.getSockets();
-    sendSocketList.forEach(socket => {
+    const sendSocketList = this.getMoreUserSockets(keys);
+    sendSocketList.forEach((socket) => {
       WsResponse.success(socket, type, data);
     });
   }

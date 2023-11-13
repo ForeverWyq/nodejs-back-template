@@ -1,4 +1,4 @@
-const { RESPONSE } = require('@/common/CONSTANT');
+const { RESPONSE } = global.$CONSTANT;
 class WsResponse {
   success(socket, type, data, message) {
     const params = {
@@ -14,6 +14,13 @@ class WsResponse {
       code: RESPONSE.ERROR_CODE,
       err,
       message: message || '系统错误'
+    };
+    socket.send(JSON.stringify(params));
+  }
+  exceedMaximum(socket) {
+    const params = {
+      code: RESPONSE.EXCEED_MAXIMUM,
+      message: '连接超出上限'
     };
     socket.send(JSON.stringify(params));
   }

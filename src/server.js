@@ -17,13 +17,14 @@ class HttpServer {
       serverBaseUrl,
       serverPort,
       WHITE_URL,
-      fileSavePath
+      fileSavePath,
+      deviceTypeMaxMap
     } = options;
     this.whiteList = WHITE_URL;
     this.fileSavePath = fileSavePath;
     this.router = this.registeredRoute(serverBaseUrl);
     this.server = http.createServer((req, res) => this.httpRequest(req, res));
-    this.ws = this.createWebSocketServer();
+    this.ws = this.createWebSocketServer(deviceTypeMaxMap);
     this.listen(serverPort);
   }
   listen(port) {
@@ -44,8 +45,8 @@ class HttpServer {
     });
     return router;
   }
-  createWebSocketServer() {
-    return new WebSocket(this.server);
+  createWebSocketServer(deviceTypeMaxMap) {
+    return new WebSocket(this.server, deviceTypeMaxMap);
   }
   httpRequest(req, res) {
     const { method } = req;

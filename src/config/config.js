@@ -16,7 +16,7 @@ module.exports = {
     // token私钥
     privateKey: 'nodejs-back-template-private-key',
     // token生效时长，{string | number} 数字单位秒
-    expiresIn: '1d'
+    expiresIn: '30m'
   },
   refreshTokenConf: {
     key: refreshTokenKey,
@@ -25,6 +25,12 @@ module.exports = {
     privateKey: 'nodejs-back-template-refresh-private-key',
     // refreshToken生效时长，{string | number} 数字单位秒
     expiresIn: '7d',
+  },
+  // 该配置键值与前端对其即可，值最小为1
+  deviceTypeMaxMap: {
+    web: 1,
+    pc: 1,
+    phone: 1
   },
   // mysql配置: 详见npm mysql介绍
   mysql: {

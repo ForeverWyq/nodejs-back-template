@@ -6,5 +6,8 @@ module.exports = {
   // 找不到路径
   NOT_FOUND: 404,
   // 无权限
-  PERMISSION_DENIED: 401
+  PERMISSION_DENIED: 401,
+
+  // WS
+  EXCEED_MAXIMUM: 415
 };
