@@ -7,7 +7,8 @@ module.exports = {
   NOT_FOUND: 404,
   // 无权限
   PERMISSION_DENIED: 401,
-
+  // token过期
+  TOKEN_EXPIRED: 403,
   // WS
   EXCEED_MAXIMUM: 415
 };

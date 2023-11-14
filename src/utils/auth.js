@@ -50,6 +50,9 @@ class Auth {
     try {
       return this.tokenGenerator.verify(tokenstr);
     } catch(err) {
+      if (err.message === 'jwt expired') {
+        return 'expired'
+      }
       return null;
     }
   }
@@ -58,7 +61,40 @@ class Auth {
 const tokenAuth = new Auth(tokenConf);
 const refreshTokenAuth = new Auth(refreshTokenConf);
 
+function authVerify(req, path_, whiteList = []) {
+  if (whiteList.includes(path_)) {
+    return { whitePath: true };
+  }
+  // token合法性拦截
+  const tokenInfo = tokenAuth.verifyToken(req);
+  const isExpired = tokenInfo === 'expired';
+  if (!isExpired && tokenInfo) {
+    return tokenInfo;
+  }
+  const refreshTokenInfo = refreshTokenAuth.verifyToken(req);
+  if (refreshTokenInfo) {
+    return { ...refreshTokenInfo, refresh: true };
+  }
+  return isExpired ? { expired: true } : null;
+}
+
+function getTokenHeader(tokenInfo) {
+  if (!tokenInfo) {
+    return {};
+  }
+  const info = { ...tokenInfo };
+  delete info.refresh;
+  const newToken = tokenAuth.refreshToken(info);
+  const newRefreshToken = refreshTokenAuth.refreshToken(info);
+  return {
+    [tokenAuth.headerKey]: newToken,
+    [refreshTokenAuth.headerKey]: newRefreshToken,
+  }
+}
+
 module.exports = {
   tokenAuth,
-  refreshTokenAuth
+  refreshTokenAuth,
+  authVerify,
+  getTokenHeader
 };

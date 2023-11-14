@@ -1,4 +1,5 @@
 const { RESPONSE } = global.$CONSTANT;
+
 class WsResponse {
   success(socket, type, data, message) {
     const params = {
@@ -21,6 +22,29 @@ class WsResponse {
     const params = {
       code: RESPONSE.EXCEED_MAXIMUM,
       message: '连接超出上限'
+    };
+    socket.send(JSON.stringify(params));
+  }
+  permissionDenied(socket) {
+    const params = {
+      code: RESPONSE.PERMISSION_DENIED,
+      message: '无权限访问'
+    };
+    socket.send(JSON.stringify(params));
+  }
+  tokenExpired(socket) {
+    const params = {
+      code: RESPONSE.LOSE_EFFICACY,
+      message: '令牌已过期'
+    };
+    socket.send(JSON.stringify(params));
+  }
+  updateToken(socket, data) {
+    const params = {
+      code: RESPONSE.SUCCESS_CODE,
+      type: '/update/auth',
+      data,
+      message: ''
     };
     socket.send(JSON.stringify(params));
   }

@@ -1,6 +1,7 @@
 const ws = require('ws');
 const WsResponse = require('./WsResponse');
 const distribute = require('./distribute');
+const { authVerify, getTokenHeader } = require('@/utils/auth');
 
 class WebSocket {
   constructor(server, deviceTypeMaxMap) {
@@ -123,16 +124,23 @@ class WebSocket {
     try {
       const data = JSON.parse(str);
       const { token, path, data: wsData } = data;
-      if (!token) {
+      const tokenInfo = authVerify(token);
+      if (!tokenInfo) {
         return;
       }
-      // TODO: 移动到对应接口下、token解析
-      this.setSocket(socket, data.token);
+      if (tokenInfo.expired) {
+        // 令牌过期，前端需要带刷新token重发消息
+        return WsResponse.tokenExpired(socket)
+      }
+      if (tokenInfo.refresh) {
+        // 刷新token验证通过，向前端输送新的令牌，正常执行业务
+        WsResponse.updateToken(socket, getTokenHeader(tokenInfo));
+      }
       const [fn] = distribute(path);
       if (!fn) {
         return WsResponse.error(socket, error.message);;
       }
-      fn({ socket, wsData, token, res: WsResponse, ws: this });
+      fn({ socket, wsData, tokenInfo, res: WsResponse, ws: this });
     } catch (error) {
       WsResponse.error(socket, error.message);
     }

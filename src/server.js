@@ -9,7 +9,7 @@ const WebSocket = require('@/webSocket/index');
 const handleTryCatch = require('@/utils/handleTryCatch');
 const Router = require('@/utils/router');
 const { importAll, mkdirPath } = require('@/utils/file');
-const { tokenAuth, refreshTokenAuth } = require('./utils/auth');
+const { authVerify, getTokenHeader } = require('./utils/auth');
 
 class HttpServer {
   constructor(options) {
@@ -62,12 +62,15 @@ class HttpServer {
       BaseResponse.notFound(res, path_, method);
       return;
     }
-    const tokenInfo = this.authVerify(req, path_);
+    const tokenInfo = authVerify(req, path_, this.whiteList);
     if (!tokenInfo) {
       return BaseResponse.permissionDenied(res);
     }
+    if (tokenInfo.expired) {
+      return BaseResponse.tokenExpired(res);
+    }
     if (tokenInfo.refresh) {
-      const headers = this.getTokenHeader(tokenInfo);
+      const headers = getTokenHeader(tokenInfo);
       Object.keys(headers).forEach(key => res.setHeader(key, headers[key]));
     }
     const requestParams = { req, res, tokenInfo, ws: this.ws };
@@ -75,34 +78,6 @@ class HttpServer {
       return this.formRequest(fn, requestParams);
     }
     this.otherTypeRequest(fn, requestParams);
-  }
-  authVerify(req, path_) {
-    if (this.whiteList.includes(path_)) {
-      return { whitePath: true };
-    }
-    // token合法性拦截
-    const tokenInfo = tokenAuth.verifyToken(req);
-    if (tokenInfo) {
-      return tokenInfo;
-    }
-    const refreshTokenInfo = refreshTokenAuth.verifyToken(req);
-    if (refreshTokenInfo) {
-      return { ...refreshTokenInfo, refresh: true };
-    }
-    return null;
-  }
-  getTokenHeader(tokenInfo) {
-    if (!tokenInfo) {
-      return {};
-    }
-    const info = { ...tokenInfo };
-    delete info.refresh;
-    const newToken = tokenAuth.refreshToken(info);
-    const newRefreshToken = refreshTokenAuth.refreshToken(info);
-    return {
-      [tokenAuth.headerKey]: newToken,
-      [refreshTokenAuth.headerKey]: newRefreshToken,
-    }
   }
   callFn(fn, res, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {

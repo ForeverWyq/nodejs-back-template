@@ -38,6 +38,14 @@ class BaseResponse {
     this._writeHead(res, { headers });
     res.end(JSON.stringify(params));
   }
+  tokenExpired(res, headers) {
+    const params = {
+      code: RESPONSE.TOKEN_EXPIRED,
+      message: '令牌已过期'
+    };
+    this._writeHead(res, { headers });
+    res.end(JSON.stringify(params));
+  }
   notFound(res, path, method) {
     const params = {
       code: RESPONSE.NOT_FOUND,
