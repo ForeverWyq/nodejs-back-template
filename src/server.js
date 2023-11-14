@@ -50,52 +50,52 @@ class HttpServer {
   }
   httpRequest(req, res) {
     const { method } = req;
+    const baseResponse = new BaseResponse(res, req);
     if (method === 'OPTIONS') {
       // 回复OPTIONS
-      BaseResponse.success(res);
-      return;
+      return baseResponse.success();
     }
     // 请求的地址 path_
-    const path_ = url.parse(req.url).pathname;
+    const path_ = baseResponse.path;
     const [fn, bodyType] = this.router.use(method, path_);
     if (!fn) {
-      BaseResponse.notFound(res, path_, method);
-      return;
+      return baseResponse.notFound();
     }
     const tokenInfo = authVerify(req, path_, this.whiteList);
     if (!tokenInfo) {
-      return BaseResponse.permissionDenied(res);
+      return baseResponse.permissionDenied();
     }
     if (tokenInfo.expired) {
-      return BaseResponse.tokenExpired(res);
+      return baseResponse.tokenExpired();
     }
     if (tokenInfo.refresh) {
       const headers = getTokenHeader(tokenInfo);
       Object.keys(headers).forEach(key => res.setHeader(key, headers[key]));
     }
-    const requestParams = { req, res, tokenInfo, ws: this.ws };
+    const requestParams = { baseResponse, tokenInfo, ws: this.ws };
     if (bodyType === 'form') {
       return this.formRequest(fn, requestParams);
     }
     this.otherTypeRequest(fn, requestParams);
   }
-  callFn(fn, res, ...arg) {
+  callFn(fn, baseResponse, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {
-      error && BaseResponse.error(res, error.message);
+      error && baseResponse.error(error.message);
     });
   }
   formRequest(fn, requestParams) {
-    const { req, res } = requestParams;
+    const { baseResponse } = requestParams;
     const formData = new multiparty.Form({ uploadDir: mkdirPath(this.fileSavePath) });
-    formData.parse(req, (error, fields, files) => {
+    formData.parse(baseResponse.req, (error, fields, files) => {
       if (error) {
-        return BaseResponse.error(res, error);
+        return baseResponse.error(error);
       }
-      this.callFn(fn, res, { ...requestParams, fields, files });
+      this.callFn(fn, baseResponse, { ...requestParams, fields, files });
     });
   }
   otherTypeRequest(fn, requestParams) {
-    const { req, res } = requestParams;
+    const { baseResponse } = requestParams;
+    const req = baseResponse.req;
     // 路径参数
     const params = querystring.parse(url.parse(req.url).query);
     let buffer = Buffer.from([]);
@@ -109,7 +109,7 @@ class HttpServer {
       } catch (e) {
         data = {};
       }
-      this.callFn(fn, res, { ...requestParams, paramsData: params, bodyData: data });
+      this.callFn(fn, baseResponse, { ...requestParams, paramsData: params, bodyData: data });
     });
   }
 }

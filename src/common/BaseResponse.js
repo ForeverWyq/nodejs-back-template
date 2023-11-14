@@ -1,7 +1,16 @@
+const url = require('url');
+const { tokenAuth, refreshTokenAuth } = require('@/utils/auth');
 const { RESPONSE } = global.$CONSTANT;
 const { AllowOrigin, AllowHeaders, AllowMethods } = global.$config;
+
 class BaseResponse {
-  constructor() {
+  constructor(res, req) {
+    this.res = res;
+    this.req = req;
+    this.method = req.method;
+    this.path = url.parse(req.url).pathname;
+    this.token = tokenAuth.getToken(req);
+    this.refreshToken = refreshTokenAuth.getToken(req);
     this.headers = {
       'Content-Type': 'application/json;charset=UTF-8',
       'Access-Control-Allow-Origin': AllowOrigin.join(','),
@@ -9,53 +18,56 @@ class BaseResponse {
       'Access-Control-Allow-Methods': AllowMethods.join(',')
     };
   }
-  _writeHead(res, { code = 200, headers = {} }) {
-    res.writeHead(code, { ...this.headers, ...headers });
+  _writeHead({ code = 200, headers = {} }) {
+    this.res.writeHead(code, { ...this.headers, ...headers });
   }
-  success(res, data, message, headers) {
-    const params = {
+  sendData(data, head) {
+    this._writeHead(head);
+    return this.res.end(JSON.stringify(data));
+  }
+  sendFile(fileName, file) {
+    this._writeHead({
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment;filename=${encodeURIComponent(fileName)}`
+      }
+    })
+    return this.res.end(file);
+  }
+  success(data, message, headers) {
+    return this.sendData({
       code: RESPONSE.SUCCESS_CODE,
       data,
       message: message || '成功'
-    };
-    this._writeHead(res, { headers });
-    res.end(JSON.stringify(params));
+    }, { headers });
   }
-  error(res, message, err, headers) {
-    const params = {
+  error(message, err, headers) {
+    return this.sendData({
       code: RESPONSE.ERROR_CODE,
       err,
       message: message || '系统错误'
-    };
-    this._writeHead(res, { headers });
-    res.end(JSON.stringify(params));
+    }, { headers });
   }
-  permissionDenied(res, headers) {
-    const params = {
+  permissionDenied(headers) {
+    return this.sendData({
       code: RESPONSE.PERMISSION_DENIED,
       message: '无权限访问'
-    };
-    this._writeHead(res, { headers });
-    res.end(JSON.stringify(params));
+    }, { headers });
   }
-  tokenExpired(res, headers) {
-    const params = {
+  tokenExpired(headers) {
+    return this.sendData({
       code: RESPONSE.TOKEN_EXPIRED,
       message: '令牌已过期'
-    };
-    this._writeHead(res, { headers });
-    res.end(JSON.stringify(params));
+    }, { headers });
   }
-  notFound(res, path, method) {
-    const params = {
+  notFound() {
+    return this.sendData({
       code: RESPONSE.NOT_FOUND,
-      path,
-      method,
+      path: this.path,
+      method: this.method,
       message: '找不到路径'
-    };
-    this._writeHead(res, { code: 404 });
-    res.end(JSON.stringify(params));
+    }, { code: 404 });
   }
 }
 
-module.exports = new BaseResponse();
+module.exports = BaseResponse;
