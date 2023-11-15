@@ -19,4 +19,9 @@ module.exports = (router) => {
   router.get(`${fileRoot}/current`, async ({ baseResponse, tokenInfo }) => {
     return baseResponse.success(await user.getUserInfo(tokenInfo));
   });
+
+  router.get(`${fileRoot}/logout`, async ({ baseResponse, tokenInfo, ws }) => {
+    const deviceType = baseResponse.req.headers[global.$config.deviceType];
+    return baseResponse.success(await user.logout(deviceType, tokenInfo, ws), '退出登录成功');
+  });
 };

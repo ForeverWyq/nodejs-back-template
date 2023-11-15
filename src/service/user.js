@@ -1,4 +1,5 @@
 const User = require('@/dao/modules/user');
+const { setRedis } = require('@/utils/auth');
 
 const user = new User();
 
@@ -30,7 +31,13 @@ async function getUserInfo({ id }) {
   return getSafeUserData(infoData);
 }
 
+async function logout(deviceType, tokenInfo) {
+  await setRedis(tokenInfo.id, deviceType, []);
+  return '';
+}
+
 module.exports = {
   login,
-  getUserInfo
+  getUserInfo,
+  logout
 };

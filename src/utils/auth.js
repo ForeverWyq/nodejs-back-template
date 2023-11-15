@@ -121,6 +121,7 @@ function getTokenHeader(tokenInfo) {
 module.exports = {
   tokenAuth,
   refreshTokenAuth,
+  setRedis,
   authVerify,
   getTokenHeader
 };
