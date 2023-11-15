@@ -1,5 +1,5 @@
 const TokenGenerator = require('./TokenGenerator');
-const { tokenConf, refreshTokenConf } = global.$config;
+const { tokenConf, refreshTokenConf, deviceType } = global.$config;
 
 class Auth {
   constructor(options) {
@@ -61,19 +61,42 @@ class Auth {
 const tokenAuth = new Auth(tokenConf);
 const refreshTokenAuth = new Auth(refreshTokenConf);
 
-function authVerify(req, path_, whiteList = []) {
+async function setRedis(id, type, value) {
+  const userToken = await global.$redis.get(id) || {};
+  userToken[type] = value;
+  return await global.$redis.set(id, userToken);
+}
+
+async function getUserAllToken(id) {
+  const userToken = await global.$redis.get(id) || {};
+  if (_.isEmpty(userToken)) {
+    return [];
+  }
+  return Object.values(userToken).flat();
+}
+
+async function authVerify(req, path_, whiteList = []) {
   if (whiteList.includes(path_)) {
     return { whitePath: true };
   }
   // token合法性拦截
   const tokenInfo = tokenAuth.verifyToken(req);
   const isExpired = tokenInfo === 'expired';
+  let tokenList
   if (!isExpired && tokenInfo) {
-    return tokenInfo;
+    tokenList = await getUserAllToken(tokenInfo.id);
+    if (tokenList.includes(tokenAuth.getToken(req))) {
+      return tokenInfo;
+    }
   }
   const refreshTokenInfo = refreshTokenAuth.verifyToken(req);
-  if (refreshTokenInfo) {
-    return { ...refreshTokenInfo, refresh: true };
+  if (refreshTokenInfo && refreshTokenInfo !== 'expired') {
+    if (!tokenList) {
+      tokenList = await getUserAllToken(refreshTokenInfo.id);
+    }
+    if (tokenList.includes(refreshTokenAuth.getToken(req))) {
+      return { ...refreshTokenInfo, refresh: true, deviceType: req.headers[deviceType] };
+    }
   }
   return isExpired ? { expired: true } : null;
 }
@@ -82,10 +105,13 @@ function getTokenHeader(tokenInfo) {
   if (!tokenInfo) {
     return {};
   }
+  const type = tokenInfo.deviceType;
   const info = { ...tokenInfo };
   delete info.refresh;
+  delete info.deviceType;
   const newToken = tokenAuth.refreshToken(info);
   const newRefreshToken = refreshTokenAuth.refreshToken(info);
+  setRedis(info.id, type, [newToken, newRefreshToken]);
   return {
     [tokenAuth.headerKey]: newToken,
     [refreshTokenAuth.headerKey]: newRefreshToken,

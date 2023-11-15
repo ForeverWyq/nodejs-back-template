@@ -2,6 +2,8 @@
 const tokenKey = 'access_token';
 // 双token配置：刷新token key
 const refreshTokenKey = 'refresh_token';
+// 登录设备类型
+const deviceType = 'device_type';
 
 module.exports = {
   // 服务前缀路径
@@ -26,6 +28,7 @@ module.exports = {
     // refreshToken生效时长，{string | number} 数字单位秒
     expiresIn: '7d',
   },
+  deviceType,
   // 该配置键值与前端对其即可，值最小为1
   deviceTypeMaxMap: {
     web: 1,
@@ -40,7 +43,13 @@ module.exports = {
     password: '123456',
     database: 'dbName'
   },
-  // 允许的请求头字段
+  // redis配置: 详见npm redis介绍
+  redis: {
+    // 按照github上的issues，如果用户名是默认值redis, 那么需要省略
+    // redis[s]://[[username][:password]@][host][:port][/db-number]
+    url: 'redis://:123456@localhost:6379'
+  },
+  // 跨域请求允许的请求头字段
   AllowHeaders: [
     'Content-Type',
     'Content-Length',
@@ -48,9 +57,10 @@ module.exports = {
     'Accept',
     'X-Requested-With',
     tokenKey,
-    refreshTokenKey
+    refreshTokenKey,
+    deviceType
   ],
-  // 允许的请求方法
+  // 跨域请求允许的请求方法
   AllowMethods: [
     'PUT',
     'POST',
@@ -58,7 +68,7 @@ module.exports = {
     'DELETE',
     'OPTIONS'
   ],
-  // 允许的ip * 为允许所有
+  // 跨域请求允许的ip * 为允许所有
   AllowOrigin: ['*'],
   dbPlusConfig: {
     logicDeleteField: 'is_delete', // 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)

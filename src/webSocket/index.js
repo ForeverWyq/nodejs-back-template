@@ -117,14 +117,14 @@ class WebSocket {
     console.log('连接异常');
   }
   // message需包含 socketType token
-  message(socket, str, isBinary) {
+  async message(socket, str, isBinary) {
     if (isBinary) {
       return;
     }
     try {
       const data = JSON.parse(str);
       const { token, path, data: wsData } = data;
-      const tokenInfo = authVerify(token);
+      const tokenInfo = await authVerify(token);
       if (!tokenInfo) {
         return;
       }

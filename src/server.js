@@ -48,7 +48,7 @@ class HttpServer {
   createWebSocketServer(deviceTypeMaxMap) {
     return new WebSocket(this.server, deviceTypeMaxMap);
   }
-  httpRequest(req, res) {
+  async httpRequest(req, res) {
     const { method } = req;
     const baseResponse = new BaseResponse(res, req);
     if (method === 'OPTIONS') {
@@ -61,7 +61,7 @@ class HttpServer {
     if (!fn) {
       return baseResponse.notFound();
     }
-    const tokenInfo = authVerify(req, path_, this.whiteList);
+    const tokenInfo = await authVerify(req, path_, this.whiteList);
     if (!tokenInfo) {
       return baseResponse.permissionDenied();
     }
