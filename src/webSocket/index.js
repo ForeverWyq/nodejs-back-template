@@ -107,14 +107,13 @@ class WebSocket {
   event(socket, type) {
     socket.on(type, (...arg) => this[type](socket, ...arg));
   }
-  close(socket, code, reason) {
-    console.log(code, reason);
+  close(socket, code) {
     this.removeSocket(socket);
-    console.log('连接关闭', code);
+    $log.info('连接关闭', 'code', code);
   }
   error(socket) {
     this.removeSocket(socket);
-    console.log('连接异常');
+    $log.info('连接异常', socket);
   }
   // message需包含 socketType token
   async message(socket, str, isBinary) {

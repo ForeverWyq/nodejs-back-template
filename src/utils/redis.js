@@ -17,7 +17,7 @@ class Redis {
     });
   }
   error(err) {
-    console.log('Redis Client Error', err);
+    $log.fatal('Redis Client Error', err);
   }
   async set(key, value) {
     await this.lock.status;
@@ -45,4 +45,4 @@ class Redis {
   }
 }
 
-module.exports = new Redis(global.$config.redis);
+module.exports = new Redis($config.redis);

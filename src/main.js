@@ -1,9 +1,15 @@
 global.$config = require('@/config');
 global.$CONSTANT = require('@/common/CONSTANT');
+global.$log = require('@/utils/log');
 global.$redis = require('@/utils/redis');
 const HttpServer = require('./server');
-const { WHITE_URL } = global.$CONSTANT;
+const { WHITE_URL } = $CONSTANT;
 
-console.log(process.env.NODE_ENV);
+$log.info('当前环境:', process.env.NODE_ENV);
 
-new HttpServer({ WHITE_URL, ...global.$config });
+// 全局异常捕获
+process.on('uncaughtException', function (err) {
+  $log.fatal('uncaughtException', err);
+});
+
+new HttpServer({ WHITE_URL, ...$config });

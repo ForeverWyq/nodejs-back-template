@@ -12,6 +12,10 @@ module.exports = {
   fileSavePath: './files',
   // 服务端口
   serverPort: 8080,
+  log: {
+    warn: ['warnLogs', 'console'],
+    error: ['errorLogs', 'console'],
+  },
   tokenConf: {
     key: tokenKey,
     headerKey: 'Authentication',

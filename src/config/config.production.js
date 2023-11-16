@@ -1,5 +1,9 @@
 module.exports = {
   serverPort: 10086,
+  log: {
+    warn: ['warnLogs'],
+    error: ['errorLogs'],
+  },
   mysql: {
     host: 'localhost',
     port: '3306',

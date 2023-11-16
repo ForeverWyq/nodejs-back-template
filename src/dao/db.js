@@ -23,6 +23,7 @@ class DB {
           this.lock.unlock();
           if (err) {
             typeof callback === 'function' && callback(err);
+            $log.fatal('数据库异常', err);
             reject(err);
           } else {
             this.connection = connection;
@@ -42,6 +43,7 @@ class DB {
             this.connection = null;
             this.connect();
             if (this.errNum > 0) {
+              $log.fatal('数据库异常', err);
               reject(err);
               return;
             }
@@ -56,4 +58,4 @@ class DB {
   }
 }
 
-module.exports = new DB(global.$config.mysql);
+module.exports = new DB($config.mysql);

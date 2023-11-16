@@ -29,7 +29,7 @@ class HttpServer {
   }
   listen(port) {
     this.server.listen(port, () => {
-      console.log('HttpServer启动成功, 端口:' + port);
+      $log.info('HttpServer启动成功, 端口:', port);
     });
   }
   registeredRoute(baseUrl) {
@@ -80,7 +80,10 @@ class HttpServer {
   }
   callFn(fn, baseResponse, ...arg) {
     handleTryCatch(fn, ...arg).then(([error]) => {
-      error && baseResponse.error(error.message);
+      if (error) {
+        $log.warn(baseResponse.method, baseResponse.path, error);
+        baseResponse.error(error.message);
+      }
     });
   }
   formRequest(fn, requestParams) {
@@ -88,6 +91,7 @@ class HttpServer {
     const formData = new multiparty.Form({ uploadDir: mkdirPath(this.fileSavePath) });
     formData.parse(baseResponse.req, (error, fields, files) => {
       if (error) {
+        $log.warn(baseResponse.method, baseResponse.path, error);
         return baseResponse.error(error);
       }
       this.callFn(fn, baseResponse, { ...requestParams, fields, files });
