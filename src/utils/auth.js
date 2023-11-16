@@ -1,5 +1,5 @@
 const TokenGenerator = require('./TokenGenerator');
-const { tokenConf, refreshTokenConf, deviceType } = global.$config;
+const { tokenConf, refreshTokenConf, deviceType } = $config;
 
 class Auth {
   constructor(options) {
@@ -62,13 +62,13 @@ const tokenAuth = new Auth(tokenConf);
 const refreshTokenAuth = new Auth(refreshTokenConf);
 
 async function setRedis(id, type, value) {
-  const userToken = await global.$redis.get(id) || {};
+  const userToken = await $redis.get(id) || {};
   userToken[type] = value;
-  return await global.$redis.set(id, userToken);
+  return await $redis.set(id, userToken);
 }
 
 async function getUserAllToken(id) {
-  const userToken = await global.$redis.get(id) || {};
+  const userToken = await $redis.get(id) || {};
   if (_.isEmpty(userToken)) {
     return [];
   }

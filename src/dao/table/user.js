@@ -1,4 +1,4 @@
-const { QUERY_TYPE } = global.$CONSTANT;
+const { QUERY_TYPE } = $CONSTANT;
 
 module.exports = {
   name: 'user',

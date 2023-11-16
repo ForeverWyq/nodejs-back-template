@@ -1,4 +1,4 @@
-const { RESPONSE } = global.$CONSTANT;
+const { RESPONSE } = $CONSTANT;
 
 class WsResponse {
   success(socket, type, data, message) {

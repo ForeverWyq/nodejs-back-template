@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const sqlCreate = require('@/utils/sql');
-const dbPlusConfig = global.$config.dbPlusConfig || {};
+const dbPlusConfig = $config.dbPlusConfig || {};
 
 class DBPlus {
   constructor(db, table) {

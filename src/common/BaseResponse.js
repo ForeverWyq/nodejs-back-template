@@ -1,7 +1,7 @@
 const url = require('url');
 const { tokenAuth, refreshTokenAuth } = require('@/utils/auth');
-const { RESPONSE } = global.$CONSTANT;
-const { AllowOrigin, AllowHeaders, AllowMethods } = global.$config;
+const { RESPONSE } = $CONSTANT;
+const { AllowOrigin, AllowHeaders, AllowMethods } = $config;
 
 class BaseResponse {
   constructor(res, req) {

@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { QUERY_TYPE } = global.$CONSTANT;
+const { QUERY_TYPE } = $CONSTANT;
 
 /**
  * 查询条件

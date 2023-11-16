@@ -81,7 +81,7 @@ function mkdirPath(pathStr) {
  * @param {string} outPutPath 文件输出路径
  * @returns {string[]} [文件全路径, 文件全名称]
  */
-function saveAxiosFile(fileName, headers, fileData, outPutPath = global.$config.fileSavePath) {
+function saveAxiosFile(fileName, headers, fileData, outPutPath = $config.fileSavePath) {
   const disposition = decodeURIComponent(headers['content-disposition'])?.replace(/\"|\'/g, '');
   let fileFullName = disposition.split('filename=')[1];
   if (fileName) {
