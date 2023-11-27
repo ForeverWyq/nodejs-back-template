@@ -17,13 +17,13 @@ log4js.configure({
       maxLogSize,
       keepFileExt: true
     },
-    console: { type: 'console' },
+    console: { type: 'console' }
   },
   categories: {
     warn: { appenders: warn, level: 'warn' },
     error: { appenders: error, level: 'error', enableCallStack: true },
-    default: { appenders: ['console'], level: 'trace' },
-  },
+    default: { appenders: ['console'], level: 'trace' }
+  }
 });
 
 class Log {

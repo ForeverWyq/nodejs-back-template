@@ -43,7 +43,8 @@ class WebSocket {
     }
     const deviceSocket = socketDeviceMap[deviceType];
     if (_.isEmpty(deviceSocket)) {
-      return socketDeviceMap[deviceType] = [socket];
+      socketDeviceMap[deviceType] = [socket];
+      return;
     }
     deviceSocket.push(socket);
     if (deviceSocket.length > max) {
@@ -54,7 +55,7 @@ class WebSocket {
   }
   /**
    * 删除socket对象
-   * @param {socket} socket 
+   * @param {socket} socket
    */
   removeSocket(socket) {
     const uid = this.socketToUserMap.get(socket);
@@ -69,7 +70,7 @@ class WebSocket {
       if (_.isEmpty(sockets)) {
         continue;
       }
-      const index = sockets.findIndex(socketItem => Object.is(socket, socketItem))
+      const index = sockets.findIndex(socketItem => Object.is(socket, socketItem));
       if (index !== -1) {
         return sockets.splice(index, 1);
       }
@@ -129,7 +130,7 @@ class WebSocket {
       }
       if (tokenInfo.expired) {
         // 令牌过期，前端需要带刷新token重发消息
-        return WsResponse.tokenExpired(socket)
+        return WsResponse.tokenExpired(socket);
       }
       if (tokenInfo.refresh) {
         // 刷新token验证通过，向前端输送新的令牌，正常执行业务
@@ -137,7 +138,7 @@ class WebSocket {
       }
       const [fn] = distribute(path);
       if (!fn) {
-        return WsResponse.error(socket, error.message);;
+        return WsResponse.error(socket, error.message); ;
       }
       fn({ socket, wsData, tokenInfo, res: WsResponse, ws: this });
     } catch (error) {

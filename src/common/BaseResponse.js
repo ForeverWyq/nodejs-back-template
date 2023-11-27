@@ -18,7 +18,7 @@ class BaseResponse {
       'Access-Control-Allow-Methods': AllowMethods.join(',')
     };
   }
-  _writeHead({ code = 200, headers = {} }) {
+  _writeHead({ code = 200, headers = {}}) {
     this.res.writeHead(code, { ...this.headers, ...headers });
   }
   sendData(data, head) {
@@ -31,7 +31,7 @@ class BaseResponse {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment;filename=${encodeURIComponent(fileName)}`
       }
-    })
+    });
     return this.res.end(file);
   }
   success(data, message, headers) {

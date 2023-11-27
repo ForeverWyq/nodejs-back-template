@@ -8,7 +8,7 @@ class TokenGenerator {
     this.options = otherOptions; // algorithm + keyid + noTimestamp + expiresIn + notBefore
   }
   sign(payload, signOptions = {}) {
-    const jwtSignOptions = {...signOptions, ...this.options};
+    const jwtSignOptions = { ...signOptions, ...this.options };
     return jwt.sign(payload, this.secretOrPrivateKey, jwtSignOptions);
   }
   // refreshOptions.verify = 与验证功能一起使用的选项

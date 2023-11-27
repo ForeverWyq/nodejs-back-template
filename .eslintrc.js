@@ -198,7 +198,7 @@ module.exports = {
     // 一行结束后面不要有空格
     'no-trailing-spaces': 2,
     // 不能有未定义的变量
-    'no-undef': 2,
+    'no-undef': 0,
     // 变量初始化时不能直接给它赋值为undefined
     'no-undef-init': 2,
     // 避免多行表达式

@@ -12,7 +12,7 @@ module.exports = (router) => {
     const refreshToken = refreshTokenAuth.createToken(tokenData);
     return baseResponse.success(data, '登录成功', {
       [tokenAuth.headerKey]: token,
-      [refreshTokenAuth.headerKey]: refreshToken,
+      [refreshTokenAuth.headerKey]: refreshToken
     });
   });
 

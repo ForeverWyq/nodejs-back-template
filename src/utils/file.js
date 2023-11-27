@@ -114,7 +114,7 @@ function copyFileToPath(oldPath, newPath, fileFullName) {
 
 /**
  * 批量删除文件
- * @param {string[]} paths 
+ * @param {string[]} paths
  */
 function deleteFiles(paths) {
   paths.forEach((pathStr) => {

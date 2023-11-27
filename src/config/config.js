@@ -14,7 +14,7 @@ module.exports = {
   serverPort: 8080,
   log: {
     warn: ['warnLogs', 'console'],
-    error: ['errorLogs', 'console'],
+    error: ['errorLogs', 'console']
   },
   tokenConf: {
     key: tokenKey,
@@ -30,7 +30,7 @@ module.exports = {
     // refreshToken私钥
     privateKey: 'nodejs-back-template-refresh-private-key',
     // refreshToken生效时长，{string | number} 数字单位秒
-    expiresIn: '7d',
+    expiresIn: '7d'
   },
   deviceType,
   // 该配置键值与前端对其即可，值最小为1

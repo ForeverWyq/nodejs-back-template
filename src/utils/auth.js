@@ -49,9 +49,9 @@ class Auth {
     }
     try {
       return this.tokenGenerator.verify(tokenstr);
-    } catch(err) {
+    } catch (err) {
       if (err.message === 'jwt expired') {
-        return 'expired'
+        return 'expired';
       }
       return null;
     }
@@ -82,7 +82,7 @@ async function authVerify(req, path_, whiteList = []) {
   // token合法性拦截
   const tokenInfo = tokenAuth.verifyToken(req);
   const isExpired = tokenInfo === 'expired';
-  let tokenList
+  let tokenList;
   if (!isExpired && tokenInfo) {
     tokenList = await getUserAllToken(tokenInfo.id);
     if (tokenList.includes(tokenAuth.getToken(req))) {
@@ -114,8 +114,8 @@ function getTokenHeader(tokenInfo) {
   setRedis(info.id, type, [newToken, newRefreshToken]);
   return {
     [tokenAuth.headerKey]: newToken,
-    [refreshTokenAuth.headerKey]: newRefreshToken,
-  }
+    [refreshTokenAuth.headerKey]: newRefreshToken
+  };
 }
 
 module.exports = {

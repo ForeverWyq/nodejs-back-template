@@ -2,7 +2,7 @@ module.exports = {
   serverPort: 10086,
   log: {
     warn: ['warnLogs'],
-    error: ['errorLogs'],
+    error: ['errorLogs']
   },
   mysql: {
     host: 'localhost',
