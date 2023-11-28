@@ -51,7 +51,7 @@ function whereCreated(data, tableColumns) {
  * @returns {SqlCreateResult}
  */
 function select(data, table, tableColumns, order) {
-  const { pageNum, pageSize, ...selectData } = data;
+  const { pageNum, pageSize, ...selectData } = data || {};
   const where = whereCreated(selectData, tableColumns.map(item => ({ ...item, table })));
   let sql = `select ?? from ?? ${where.sql}`;
   const arr = [tableColumns.map(({ id }) => id), table, ...where.arr];
@@ -64,12 +64,12 @@ function select(data, table, tableColumns, order) {
     }
   }
   if (pageNum && pageSize) {
-    const start = ((Number(pageNum) - 1) * Number(pageSize));
+    const start = (Number(pageNum) - 1) * Number(pageSize);
     sql = `${sql} limit ?,?`;
     arr.push(start, pageSize);
   }
   return { sql, arr };
-};
+}
 
 /**
  * 查询总数
@@ -82,7 +82,7 @@ function select(data, table, tableColumns, order) {
 function selectCount(data, table, tableColumns, tableMainKey) {
   const { sql, arr } = whereCreated(data, tableColumns.map(item => ({ ...item, table })));
   return { sql: `select count(??) as total from ?? ${sql}`, arr: [tableMainKey, table, ...arr] };
-};
+}
 
 /**
  * 获取插入的行数据
@@ -127,7 +127,7 @@ function insert(data, table, tableColumns) {
     sql: `insert into ?? (??) values ?`,
     arr: [table, column, arr]
   };
-};
+}
 
 /**
  * 更新
@@ -139,19 +139,17 @@ function insert(data, table, tableColumns) {
  */
 function updateById(data, table, tableColumns, tableMainKey) {
   const sets = {};
-  const arr = [];
   tableColumns.forEach(({ id }) => {
     const value = data[id];
     if (!_.isUndefined(value) && id !== tableMainKey) {
       sets[id] = value;
     }
   });
-  arr.push(data[tableMainKey]);
   return {
     sql: `update ?? set ? where ??=?`,
     arr: [table, sets, tableMainKey, data[tableMainKey]]
   };
-};
+}
 
 /**
  * 批量更新
@@ -161,7 +159,7 @@ function updateById(data, table, tableColumns, tableMainKey) {
  * @param {string} tableMainKey 主键名称
  * @returns {SqlCreateResult}
  */
-function batchUpdateById(data, table, tableColumns, tableMainKey) {
+function beatchUpdateById(data, table, tableColumns, tableMainKey) {
   let sql = `update ?? set`;
   const arr = [table];
   let count = 0;
@@ -209,7 +207,7 @@ function removeByIds(ids, table, tableMainKey) {
     sql: `delete from ?? where ?? in (?)`,
     arr: [table, tableMainKey, arr]
   };
-};
+}
 
 /**
  * 批量逻辑删除
@@ -232,7 +230,7 @@ module.exports = {
   selectCount,
   insert,
   updateById,
-  batchUpdateById,
+  beatchUpdateById,
   removeByIds,
   logicRemoveByIds
 };

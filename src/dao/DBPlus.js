@@ -21,11 +21,11 @@ class DBPlus {
     return { list, total, pageSize, pageNum };
   }
   async select(obj, order) {
-    const { sql, arr } = sqlCreate.select(obj, this.tableName, this.tableColumns, order || this.order);
+    const { sql, arr } = sqlCreate.select(obj || {}, this.tableName, this.tableColumns, order || this.order);
     return await this.db.executeSql(sql, arr);
   }
   async count(obj) {
-    const { sql, arr } = sqlCreate.selectCount(obj, this.tableName, this.tableColumns, this.mainKey);
+    const { sql, arr } = sqlCreate.selectCount(obj || {}, this.tableName, this.tableColumns, this.mainKey);
     const [{ total }] = await this.db.executeSql(sql, arr);
     return total;
   }
@@ -35,7 +35,7 @@ class DBPlus {
    * @returns
    */
   async insert(data) {
-    const { sql, arr } = sqlCreate.insert(data, this.tableName, this.tableColumns);
+    const { sql, arr } = sqlCreate.insert(data || {}, this.tableName, this.tableColumns);
     return await this.db.executeSql(sql, arr);
   }
   /**
@@ -44,7 +44,7 @@ class DBPlus {
    * @returns
    */
   async updateById(obj) {
-    const { sql, arr } = sqlCreate.updateById(obj, this.tableName, this.tableColumns, this.mainKey);
+    const { sql, arr } = sqlCreate.updateById(obj || {}, this.tableName, this.tableColumns, this.mainKey);
     return await this.db.executeSql(sql, arr);
   }
   /**
@@ -52,18 +52,16 @@ class DBPlus {
    * @param {Array<Object>} data
    * @returns
    */
-  async batchUpdateById(data) {
-    const { sql, arr } = sqlCreate.batchUpdateById(data, this.tableName, this.tableColumns, this.mainKey);
+  async beatchUpdateById(data) {
+    const { sql, arr } = sqlCreate.beatchUpdateById(data || [], this.tableName, this.tableColumns, this.mainKey);
     return await this.db.executeSql(sql, arr);
   }
   async removeById(id) {
-    const removeFunc = sqlCreate[this.isLogicDelete ? 'logicRemoveByIds' : 'removeByIds'];
-    const { sql, arr } = removeFunc([id], this.tableName, this.mainKey, this.logicField);
-    return await this.db.executeSql(sql, arr);
+    return await this.removeByIds([id]);
   }
   async removeByIds(ids) {
     const removeFunc = sqlCreate[this.isLogicDelete ? 'logicRemoveByIds' : 'removeByIds'];
-    const { sql, arr } = removeFunc(ids, this.tableName, this.mainKey, this.logicField);
+    const { sql, arr } = removeFunc(ids || [], this.tableName, this.mainKey, this.logicField);
     return await this.db.executeSql(sql, arr);
   }
 }

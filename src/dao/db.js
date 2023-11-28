@@ -50,6 +50,7 @@ class DB {
             this.errNum++;
             resolve(await this.executeSql(sql, arr));
           } else {
+            this.errNum = 0;
             resolve(result);
           }
         });
