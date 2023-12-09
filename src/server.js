@@ -57,7 +57,7 @@ class HttpServer {
     }
     // 请求的地址 path_
     const path_ = baseResponse.path;
-    const [fn, bodyType] = this.router.use(method, path_);
+    const [fn, bodyType, routerParams] = this.router.use(method, path_);
     if (!fn) {
       return baseResponse.notFound();
     }
@@ -72,7 +72,7 @@ class HttpServer {
       const headers = getTokenHeader(tokenInfo);
       Object.keys(headers).forEach(key => res.setHeader(key, headers[key]));
     }
-    const requestParams = { baseResponse, tokenInfo, ws: this.ws };
+    const requestParams = { baseResponse, tokenInfo, routerParams, ws: this.ws };
     if (bodyType === 'form') {
       return this.formRequest(fn, requestParams);
     }

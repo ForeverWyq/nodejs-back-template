@@ -136,11 +136,11 @@ class WebSocket {
         // 刷新token验证通过，向前端输送新的令牌，正常执行业务
         WsResponse.updateToken(socket, getTokenHeader(tokenInfo));
       }
-      const [fn] = distribute(path);
+      const [fn, routerParams] = distribute(path);
       if (!fn) {
         return WsResponse.error(socket, error.message); ;
       }
-      fn({ socket, wsData, tokenInfo, res: WsResponse, ws: this });
+      await fn({ socket, routerParams, wsData, tokenInfo, res: WsResponse, ws: this });
     } catch (error) {
       WsResponse.error(socket, error.message);
     }

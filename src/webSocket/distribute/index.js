@@ -10,7 +10,7 @@ function setRouter(path, callback) {
   router.setRoute('WS', path, callback);
 }
 
-Object.keys(fileMap).forEach(name => {
+Object.keys(fileMap).forEach((name) => {
   const register = fileMap[name];
   if (typeof register === 'function') {
     register(setRouter);
@@ -19,7 +19,8 @@ Object.keys(fileMap).forEach(name => {
 
 // 对接收到的信息根据自定义的路径进行分发
 function distribute(path) {
-  return router.use('WS', path);
+  const [fn, , params] = router.use('WS', path);
+  return [fn, params];
 }
 
 module.exports = distribute;
