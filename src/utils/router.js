@@ -1,7 +1,31 @@
 class Router {
+  /**
+   * @param {string} contextRoot 文根
+   */
   constructor(contextRoot) {
-    this.contextRoot = contextRoot || '';
+    this.contextRoot = contextRoot || '/';
     this.pathMap = new Map([]);
+  }
+  joinPath(path = '') {
+    if (!path) {
+      return this.contextRoot;
+    }
+    if (path[0] !== '/') {
+      path = `/${path}`;
+    }
+    return `${this.contextRoot}${path}`.replace(/\/\//g, '/');
+  }
+  /**
+   * 获取路径
+   * @param {string} path
+   * @returns {['all' | 'match', string]}
+   */
+  _getPath(path) {
+    const fullPath = this.joinPath(path);
+    if (fullPath.includes('/:')) {
+      return ['match', fullPath];
+    }
+    return ['all', fullPath];
   }
   /**
    * 添加路由
@@ -12,14 +36,20 @@ class Router {
    */
   setRoute(method, path, callback, type = 'json') {
     method = method.toUpperCase();
-    const fullPath = `${this.contextRoot}${path}`;
+    const [pathType, fullPath] = this._getPath(path);
     if (!this.pathMap.has(method)) {
-      this.pathMap.set(method, {
-        [fullPath]: [callback, type]
-      });
+      const methodMap = {
+        all: new Map([]),
+        match: new Map([])
+      };
+      methodMap[pathType].set(fullPath, [callback, type]);
+      this.pathMap.set(method, methodMap);
     } else {
-      this.pathMap.get(method)[fullPath] = [callback, type];
+      this.pathMap.get(method)[pathType].set(fullPath, [callback, type]);
     }
+  }
+  addMoudel(rootPath) {
+    return new RouterMoudel(this.joinPath(rootPath), this.pathMap);
   }
   get(...arg) {
     this.setRoute('GET', ...arg);
@@ -36,6 +66,49 @@ class Router {
   patch(...arg) {
     this.setRoute('PATCH', ...arg);
   }
+  matchPath(matchPath = '', path = '') {
+    const matchPathList = matchPath.split('/');
+    const pathList = path.split('/').reverse();
+    const len = matchPathList.length;
+    if (len !== pathList.length) {
+      return null;
+    }
+    const params = {};
+    for (let index = 0; index < len; index++) {
+      const item = matchPathList[index];
+      const pathItem = pathList.pop();
+      if (item[0] === ':') {
+        const key = item.slice(1);
+        params[key] = decodeURIComponent(pathItem);
+        continue;
+      }
+      if (item !== pathItem) {
+        return null;
+      }
+    }
+    return params;
+  }
+  /**
+   * 匹配路由
+   * @param {Map} matchMap
+   * @param {string} path
+   */
+  matchRouter(matchMap, path) {
+    const matchArr = [...matchMap.keys()];
+    matchArr.sort((a, b) => {
+      return a.split('/:').length - b.split('/:').length;
+    });
+    const len = matchArr.length;
+    for (let i = 0; i < len; i++) {
+      const matchPath = matchArr[i];
+      const params = this.matchPath(matchPath, path);
+      if (params) {
+        const value = matchMap.get(matchPath);
+        return [...value, params];
+      }
+    }
+    return [];
+  }
   /**
    * 获取路径对应函数
    * @param {string} method 请求类型
@@ -44,8 +117,27 @@ class Router {
    */
   use(method, path) {
     method = method.toUpperCase();
-    const fn = this.pathMap.has(method) ? this.pathMap.get(method)[decodeURI(path)] : [];
-    return fn || [];
+    if (!this.pathMap.has(method)) {
+      return [];
+    }
+    const methodMap = this.pathMap.get(method);
+    const { all, match } = methodMap;
+    const realPath = decodeURI(path);
+    if (all.has(realPath)) {
+      return all.get(realPath);
+    }
+    return this.matchRouter(match, path);
+  }
+}
+
+class RouterMoudel extends Router {
+  /**
+   * @param {string} moudleRoot 模块文根
+   * @param {Map} pathMap router路由对象
+   */
+  constructor(moudleRoot, pathMap) {
+    super(moudleRoot);
+    this.pathMap = pathMap;
   }
 }
 
