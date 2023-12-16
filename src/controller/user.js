@@ -1,10 +1,10 @@
 const user = require('../service/user');
 const { tokenAuth, refreshTokenAuth } = require('@/utils/auth');
 
-const fileRoot = '/user';
-
 module.exports = (router) => {
-  router.post(`${fileRoot}/login`, async ({ baseResponse, bodyData }) => {
+  const userRouter = router.addMoudel('/user');
+
+  userRouter.post('/login', async ({ baseResponse, bodyData }) => {
     const data = await user.login(bodyData);
     const { id, userAccount, updateTime } = data;
     const tokenData = { id, userAccount, updateTime };
@@ -16,11 +16,11 @@ module.exports = (router) => {
     });
   });
 
-  router.get(`${fileRoot}/current`, async ({ baseResponse, tokenInfo }) => {
+  userRouter.get('/current', async ({ baseResponse, tokenInfo }) => {
     return baseResponse.success(await user.getUserInfo(tokenInfo));
   });
 
-  router.get(`${fileRoot}/logout`, async ({ baseResponse, tokenInfo, ws }) => {
+  userRouter.get('/logout', async ({ baseResponse, tokenInfo, ws }) => {
     const deviceType = baseResponse.req.headers[$config.deviceType];
     return baseResponse.success(await user.logout(deviceType, tokenInfo, ws), '退出登录成功');
   });
