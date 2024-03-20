@@ -104,7 +104,7 @@ class Router {
       const params = this.matchPath(matchPath, path);
       if (params) {
         const value = matchMap.get(matchPath);
-        return [...value, params];
+        return [...value, params, matchPath];
       }
     }
     return [];
@@ -124,9 +124,9 @@ class Router {
     const { all, match } = methodMap;
     const realPath = decodeURI(path);
     if (all.has(realPath)) {
-      return all.get(realPath);
+      return [...all.get(realPath), realPath];
     }
-    return this.matchRouter(match, path);
+    return this.matchRouter(match, realPath);
   }
 }
 

@@ -57,11 +57,11 @@ class HttpServer {
     }
     // 请求的地址 path_
     const path_ = baseResponse.path;
-    const [fn, bodyType, routerParams] = this.router.use(method, path_);
+    const [fn, bodyType, routerParams, matchPath] = this.router.use(method, path_);
     if (!fn) {
       return baseResponse.notFound();
     }
-    const tokenInfo = await authVerify(req, path_, this.whiteList);
+    const tokenInfo = await authVerify(req, matchPath, this.whiteList);
     if (!tokenInfo) {
       return baseResponse.permissionDenied();
     }
